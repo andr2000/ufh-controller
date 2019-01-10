@@ -24,13 +24,12 @@ class EbusdType(Enum):
 
 class EbusdParameter(object):
     def __init__(self, cs_string):
-        # cs_string is a comma separated circuit,type,name
+        # cs_string is a comma separated type,name
         list = cs_string.split(',')
         if not list:
             raise ValueError('Wrong or empty parameter list')
-        self.circuit = EbusdCircuit(list[0])
-        self.type = EbusdType(list[1])
-        self.name = list[2]
+        self.type = EbusdType(list[0])
+        self.name = list[1]
 
 
 class EbusdScanResult(object):
@@ -42,6 +41,11 @@ class EbusdScanResult(object):
         self.address = vals[0]
         self.make = vals[1]
         self.id = EbusdDeviceId(vals[2])
+        # Set proper circuit name
+        if self.id == EbusdDeviceId.bai:
+            self.circuit = 'bai'
+        else:
+            self.circuit = ''
         self.sw = vals[3]
         self.hw = vals[4]
         self.prod = vals[8]

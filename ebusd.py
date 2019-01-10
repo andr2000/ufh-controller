@@ -71,19 +71,20 @@ class Ebusd(object):
             reply = self.__read(cmd)
             return reply
 
-    def find(self):
-        self.logger.info('Querying the supported messages...')
+    def get_supported_messages(self, circuit=None):
+        self.logger.info('Querying supported messages...')
+        result = []
         with self.lock:
-            reply = self.__read('find -F circuit,type,name')
+            reply = self.__read('find -F type,name')
+            if circuit:
+                reply += ' -c ' + circuit
             if reply:
                 for line in reply.split('\n'):
                     try:
-                        param = EbusdParameter(line)
-                        self.logger.debug('Parameter circuit: %s type: %s name: %s' %
-                                  (param.circuit.value, param.type.value,
-                                   param.name))
+                        result.append(EbusdParameter(line))
                     except ValueError:
                         self.logger.error('Unsupported ebusd parameter %s', line)
+        return result
 
     def __recvall(self):
         chunk_sz = 4096
