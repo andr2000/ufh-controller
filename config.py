@@ -9,11 +9,12 @@ class Config(object):
     def __new__(cls):
         if Config.__instance is None:
             Config.__instance = object.__new__(cls)
+            Config.__instance.logger = logging.getLogger(__name__)
             Config.__instance.__parse_args()
         return Config.__instance
 
     def __parse_args(self):
-        logging.info('Reading configuration')
+        self.logger.info('Reading configuration')
         parser = argparse.ArgumentParser()
         parser.add_argument('--config', dest='config_file', required=False,
                             help="Use configuration file for tuning")

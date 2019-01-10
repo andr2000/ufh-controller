@@ -11,18 +11,21 @@ def main():
         devices = []
 
         logging.basicConfig(level=logging.DEBUG)
-        logging.info('This is %s v%s' % (version.PRODUCT, version.VERSION))
+
+        logger = logging.getLogger(__name__)
+
+        logger.info('This is %s v%s' % (version.PRODUCT, version.VERSION))
         scan_results = ebusd.Ebusd().scan_devices()
         if not scan_results:
             raise SystemError('No devices found')
-        logging.info('Found %s device(s)' % len(scan_results))
+        logger.info('Found %s device(s)' % len(scan_results))
         for dev in scan_results:
             if dev.id == EbusdDeviceId.bai:
                 devices.append(device_bai.DeviceBAI(dev))
             else:
-                logging.error('Unsupported device %s' % dev.id)
+                logger.error('Unsupported device %s' % dev.id)
     finally:
-        logging.info('Done')
+        logger.info('Done')
 
 
 if __name__ == '__main__':

@@ -14,6 +14,7 @@ class Ebusd(object):
     def __new__(cls):
         if Ebusd.__instance is None:
             Ebusd.__instance = object.__new__(cls)
+            Ebusd.__instance.logger = logging.getLogger(__name__)
             Ebusd.__instance.lock = threading.Lock()
             Ebusd.__instance.connect()
         return Ebusd.__instance
@@ -22,7 +23,7 @@ class Ebusd(object):
         self.disconnect()
 
     def connect(self):
-        logging.info('Connecting to ebusd...')
+        self.logger.info('Connecting to ebusd...')
         try:
             cfg = config.Config()
             with self.lock:
@@ -33,26 +34,26 @@ class Ebusd(object):
             raise socket.timeout(socket.timeout())
         except socket.error:
             raise socket.error(socket.error)
-        logging.info('Connected')
+        self.logger.info('Connected')
 
     def disconnect(self):
-        logging.info('Disconnecting from ebusd...')
+        self.logger.info('Disconnecting from ebusd...')
         with self.lock:
             if self.sock:
                 self.sock.close()
             self.sock = None
-        logging.info('Disconnected')
+        self.logger.info('Disconnected')
 
     def scan_devices(self):
         result = []
         reply = self.__scan(result=True)
         if reply:
             for line in reply.split('\n'):
-                logging.debug('scanned %s' % line)
+                self.logger.debug('scanned %s' % line)
                 try:
                     result.append(EbusdScanResult(line))
                 except Exception as e:
-                    logging.error('Skipping scan result %s: %s' % (line, str(e)))
+                    self.logger.error('Skipping scan result %s: %s' % (line, str(e)))
         return result
 
 
@@ -71,18 +72,18 @@ class Ebusd(object):
             return reply
 
     def find(self):
-        logging.info('Querying the supported messages...')
+        self.logger.info('Querying the supported messages...')
         with self.lock:
             reply = self.__read('find -F circuit,type,name')
             if reply:
                 for line in reply.split('\n'):
                     try:
                         param = EbusdParameter(line)
-                        logging.debug('Parameter circuit: %s type: %s name: %s' %
+                        self.logger.debug('Parameter circuit: %s type: %s name: %s' %
                                   (param.circuit.value, param.type.value,
                                    param.name))
                     except ValueError:
-                        logging.error('Unsupported ebusd parameter %s', line)
+                        self.logger.error('Unsupported ebusd parameter %s', line)
 
     def __recvall(self):
         chunk_sz = 4096
