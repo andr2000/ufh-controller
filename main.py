@@ -1,4 +1,5 @@
 import config
+import ebusd
 import logging
 import version
 
@@ -7,7 +8,7 @@ def main():
     try:
         logging.basicConfig(level=logging.DEBUG)
         logging.info('This is %s v%s' % (version.PRODUCT, version.VERSION))
-        cfg = config.Config()
+        ebusd_instance = ebusd.Ebusd()
     finally:
         logging.info('Done')
 

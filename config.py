@@ -18,3 +18,12 @@ class Config(object):
         parser.add_argument('--config', dest='config_file', required=False,
                             help="Use configuration file for tuning")
         self.__args = parser.parse_args()
+
+    def ebusd_address(self):
+        return 'localhost'
+
+    def ebusd_port(self):
+        return 8888
+
+    def ebusd_timeout(self):
+        return 5
