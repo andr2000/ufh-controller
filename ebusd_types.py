@@ -29,6 +29,7 @@ class EbusdParameter(object):
         if not list:
             raise ValueError('Wrong or empty parameter list')
         self.type = EbusdType(list[0])
+        self.type_ebusd = list[0]
         self.name = list[1]
 
 

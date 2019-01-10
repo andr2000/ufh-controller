@@ -86,6 +86,20 @@ class Ebusd(object):
                         self.logger.error('Unsupported ebusd parameter %s', line)
         return result
 
+    def read_parameter(self, msg, dest_addr=None):
+        result = None
+        if msg.type != EbusdType.read:
+            self.logger.error('Parameter %s has wrong type %s' %
+                              (msg.name, msg.type))
+            return result
+        with self.lock:
+            args = ''
+            if dest_addr:
+                args += '-d ' + dest_addr + ' '
+            args += msg.name
+            result = self.__read('read -f ' + args)
+        return result
+
     def __recvall(self):
         chunk_sz = 4096
         result = b''
