@@ -12,13 +12,13 @@ class DeviceBAI:
 
         self.supported_messages = ebusd.Ebusd().get_supported_messages(
             circuit=scan_result.circuit)
-        self.message = []
+        self.message = {}
         for msg in self.supported_messages:
             self.__register_message(msg)
 
         flow_temp = ebusd.Ebusd().read_parameter(
             self.message['flow_temp'], self.scan_result.address)
-        self.logger.info('Flow temperature is %s' % flow_temp)
+        self.logger.info('Flow temperature is %f' % float(flow_temp[0]))
 
     def __register_message(self, msg):
         # Check what message it is and assign it properly

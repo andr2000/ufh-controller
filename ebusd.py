@@ -98,7 +98,7 @@ class Ebusd(object):
                 args += '-d ' + dest_addr + ' '
             args += msg.name
             result = self.__read('read -f ' + args)
-        return result
+        return result.split(';')
 
     def __recvall(self):
         chunk_sz = 4096
