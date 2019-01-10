@@ -1,62 +1,21 @@
 import config
-from enum import Enum
 import logging
 import threading
 import socket
-
-
-class EbusdCircuit(Enum):
-    unknown = 'unknown'
-    bai = 'bai'
-    broadcast = 'broadcast'
-    general = 'general'
-    memory = 'memory'
-    scan = 'scan'
-
-
-class EbusdType(Enum):
-    unknown = 'unknown'
-    read = 'r'
-    write = 'w'
-    update = 'u'
-    update_on_write = 'uw'
-
-
-class EbusdParameter(object):
-    circuit = None
-    type = None
-    name = None
-
-    def __init__(self, cs_string):
-        '''cs_string is a comma separated circuit,type,name'''
-        list = cs_string.split(',')
-        if not list:
-            raise SyntaxError('Wrong or empty parameter list')
-        self.circuit = EbusdCircuit(list[0])
-        self.type = EbusdType(list[1])
-        self.name = list[2]
-
-    def GetCircuit(self):
-        return self.circuit.value
-
-    def GetType(self):
-        return self.type.value
-
-    def GetName(self):
-        return self.name
-
+from ebusd_types import (EbusdCircuit, EbusdType,
+                         EbusdParameter, EbusdScanResult)
 
 class Ebusd(object):
     __instance = None
     lock = None
     sock = None
+    scanned_devices = []
 
     def __new__(cls):
         if Ebusd.__instance is None:
             Ebusd.__instance = object.__new__(cls)
             Ebusd.__instance.lock = threading.Lock()
             Ebusd.__instance.connect()
-            Ebusd.__instance.find()
         return Ebusd.__instance
 
     def __del__(self):
@@ -84,22 +43,46 @@ class Ebusd(object):
             self.sock = None
         logging.info('Disconnected')
 
+    def scan_devices(self):
+        result = []
+        reply = self.__scan(result=True)
+        if reply:
+            for line in reply.split('\n'):
+                logging.debug('scanned %s' % line)
+                try:
+                    result.append(EbusdScanResult(line))
+                except Exception as e:
+                    logging.error('Skipping scan result %s: %s' % (line, str(e)))
+        return result
+
+
+    def __scan(self, result=True, full=False, address=''):
+        cmd = 'scan '
+        if result:
+            cmd += 'result'
+        elif full:
+            cmd += 'full'
+        elif address:
+            cmd += address
+        else:
+            raise ValueError('Invalid combination of parameters')
+        with self.lock:
+            reply = self.__read(cmd)
+            return reply
+
     def find(self):
         logging.info('Querying the supported messages...')
-        result = None
         with self.lock:
-            result = self.__read('find -F circuit,type,name')
-            if result:
-                for line in result.split('\n'):
+            reply = self.__read('find -F circuit,type,name')
+            if reply:
+                for line in reply.split('\n'):
                     try:
                         param = EbusdParameter(line)
                         logging.debug('Parameter circuit: %s type: %s name: %s' %
-                                  (param.GetCircuit(), param.GetType(),
-                                   param.GetName()))
+                                  (param.circuit.value, param.type.value,
+                                   param.name))
                     except ValueError:
                         logging.error('Unsupported ebusd parameter %s', line)
-
-        logging.debug(result)
 
     def __recvall(self):
         chunk_sz = 4096
