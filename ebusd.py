@@ -3,7 +3,7 @@ import logging
 import threading
 import socket
 from ebusd_types import (EbusdCircuit, EbusdType,
-                         EbusdParameter, EbusdScanResult)
+                         EbusdMessage, EbusdScanResult)
 
 class Ebusd(object):
     __instance = None
@@ -81,7 +81,7 @@ class Ebusd(object):
             if reply:
                 for line in reply.split('\n'):
                     try:
-                        result.append(EbusdParameter(line))
+                        result.append(EbusdMessage(line))
                     except ValueError:
                         self.logger.error('Unsupported ebusd parameter %s', line)
         return result

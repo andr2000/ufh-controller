@@ -22,7 +22,7 @@ class EbusdType(Enum):
     update_on_write = 'uw'
 
 
-class EbusdParameter(object):
+class EbusdMessage(object):
     def __init__(self, cs_string):
         # cs_string is a comma separated type,name
         list = cs_string.split(',')
