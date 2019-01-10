@@ -1,7 +1,49 @@
 import config
+from enum import Enum
 import logging
 import threading
 import socket
+
+
+class EbusdCircuit(Enum):
+    unknown = 'unknown'
+    bai = 'bai'
+    broadcast = 'broadcast'
+    general = 'general'
+    memory = 'memory'
+    scan = 'scan'
+
+
+class EbusdType(Enum):
+    unknown = 'unknown'
+    read = 'r'
+    write = 'w'
+    update = 'u'
+    update_on_write = 'uw'
+
+
+class EbusdParameter(object):
+    circuit = None
+    type = None
+    name = None
+
+    def __init__(self, cs_string):
+        '''cs_string is a comma separated circuit,type,name'''
+        list = cs_string.split(',')
+        if not list:
+            raise SyntaxError('Wrong or empty parameter list')
+        self.circuit = EbusdCircuit(list[0])
+        self.type = EbusdType(list[1])
+        self.name = list[2]
+
+    def GetCircuit(self):
+        return self.circuit.value
+
+    def GetType(self):
+        return self.type.value
+
+    def GetName(self):
+        return self.name
 
 
 class Ebusd(object):
@@ -47,6 +89,16 @@ class Ebusd(object):
         result = None
         with self.lock:
             result = self.__read('find -F circuit,type,name')
+            if result:
+                for line in result.split('\n'):
+                    try:
+                        param = EbusdParameter(line)
+                        logging.debug('Parameter circuit: %s type: %s name: %s' %
+                                  (param.GetCircuit(), param.GetType(),
+                                   param.GetName()))
+                    except ValueError:
+                        logging.error('Unsupported ebusd parameter %s', line)
+
         logging.debug(result)
 
     def __recvall(self):
@@ -65,7 +117,6 @@ class Ebusd(object):
             command += '\n'
             self.sock.sendall(command.encode())
             result = self.__recvall().decode('utf-8').strip()
-            logging.debug(result)
         except socket.timeout:
             raise socket.timeout(socket.timeout)
         except socket.error:
