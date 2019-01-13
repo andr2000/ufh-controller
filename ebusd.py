@@ -1,48 +1,75 @@
-import config
 import logging
-import threading
 import socket
-from ebusd_types import (EbusdCircuit, EbusdType,
-                         EbusdMessage, EbusdScanResult)
+import threading
+import time
+from threading import Thread
 
-class Ebusd(object):
-    __instance = None
-    lock = None
-    sock = None
-    scanned_devices = []
+import config
+from ebusd_types import (EbusdType, EbusdMessage, EbusdScanResult)
 
-    def __new__(cls):
-        if Ebusd.__instance is None:
-            Ebusd.__instance = object.__new__(cls)
-            Ebusd.__instance.logger = logging.getLogger(__name__)
-            Ebusd.__instance.lock = threading.Lock()
-            Ebusd.__instance.connect()
-        return Ebusd.__instance
+EBUSD_SOCK_TIMEOUT = 5
+EBUSD_RECONNECT_TIMEOUT = 5
+
+
+class Ebusd(Thread):
+    def __del__(self):
+        self.disconnect()
+
+    def __init__(self):
+        super(Ebusd, self).__init__()
+        self.logger = logging.getLogger(__name__)
+        self.lock = threading.Lock()
+        self.sock = None
+        self._stop_event = threading.Event()
 
     def __del__(self):
         self.disconnect()
+
+    def stop(self):
+        self._stop_event.set()
+
+    def stopped(self):
+        return self._stop_event.is_set()
+
+    def is_connected(self):
+        with self.lock:
+            return self.sock
 
     def connect(self):
         self.logger.info('Connecting to ebusd...')
         try:
             cfg = config.Config()
             with self.lock:
+                if self.sock:
+                    self.sock.close()
+                    self.sock = None
                 self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.sock.settimeout(cfg.ebusd_timeout())
+                self.sock.settimeout(EBUSD_SOCK_TIMEOUT)
                 self.sock.connect(((cfg.ebusd_address(), cfg.ebusd_port())))
-        except socket.timeout:
-            raise socket.timeout(socket.timeout())
         except socket.error:
+            self.sock = None
             raise socket.error(socket.error)
         self.logger.info('Connected')
 
     def disconnect(self):
-        self.logger.info('Disconnecting from ebusd...')
         with self.lock:
             if self.sock:
+                self.logger.info('Disconnecting from ebusd...')
                 self.sock.close()
+                self.logger.info('Disconnected')
             self.sock = None
-        self.logger.info('Disconnected')
+
+    def run(self):
+        # This is a reconnect thread.
+        while not self.stopped():
+            if self.sock:
+                time.sleep(EBUSD_RECONNECT_TIMEOUT)
+            else:
+                try:
+                    self.connect()
+                except socket.error:
+                    time.sleep(EBUSD_RECONNECT_TIMEOUT)
+                    pass
 
     def scan_devices(self):
         result = []
@@ -53,9 +80,9 @@ class Ebusd(object):
                 try:
                     result.append(EbusdScanResult(line))
                 except Exception as e:
-                    self.logger.error('Skipping scan result %s: %s' % (line, str(e)))
+                    self.logger.error('Skipping scan result %s: %s' %
+                                      (line, str(e)))
         return result
-
 
     def __scan(self, result=True, full=False, address=''):
         cmd = 'scan '
@@ -83,7 +110,8 @@ class Ebusd(object):
                     try:
                         result.append(EbusdMessage(line))
                     except ValueError:
-                        self.logger.error('Unsupported ebusd parameter %s', line)
+                        self.logger.error('Unsupported ebusd parameter %s',
+                                          line)
         return result
 
     def read_parameter(self, msg, dest_addr=None):
@@ -111,7 +139,6 @@ class Ebusd(object):
         return result
 
     def __read(self, command):
-        result = None
         try:
             command += '\n'
             self.sock.sendall(command.encode())

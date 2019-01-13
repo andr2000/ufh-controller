@@ -1,5 +1,4 @@
 import argparse
-import configparser
 import logging
 
 
@@ -26,5 +25,5 @@ class Config(object):
     def ebusd_port(self):
         return 8888
 
-    def ebusd_timeout(self):
-        return 5
+    def daemonize(self):
+        return False
