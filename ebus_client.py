@@ -104,6 +104,8 @@ class EbusClient(threading.Thread):
 
     def state_running(self):
         self.logger.debug('Running')
+        for dev in self.devices:
+            dev.process()
         self.relax()
 
     def run(self):
