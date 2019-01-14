@@ -12,6 +12,7 @@ from ebusd_types import (EbusdDeviceId)
 class EbusClientState(Enum):
     unknown = 'unknown'
     initializing = 'initializing'
+    preparing = 'preparing'
     connecting = 'connecting'
     scanning = 'scanning'
     running = 'running'
@@ -69,8 +70,16 @@ class EbusClient(threading.Thread):
     def state_initializing(self):
         self.stop_ebusd()
         self.ebusd = ebusd.Ebusd()
-        self.set_state(EbusClientState.connecting)
+        self.set_state(EbusClientState.preparing)
         self.ebusd.start()
+
+    def state_preparing(self):
+        if self.ebusd.is_connected():
+            self.set_state(EbusClientState.connecting)
+        else:
+            if self.devices:
+                self.devices = []
+            self.relax()
 
     def state_connecting(self):
         if self.ebusd.is_connected():
@@ -81,9 +90,9 @@ class EbusClient(threading.Thread):
     def state_scanning(self):
         try:
             scan_results = self.ebusd.scan_devices()
-        except socket.error as e:
+        except OSError as e:
             self.logger.error('Scan error: %s', e.strerror(e))
-            self.set_state(EbusClientState.initializing)
+            self.set_state(EbusClientState.preparing)
         finally:
             if not scan_results:
                 self.logger.warning('No devices found, continue scanning')
@@ -103,14 +112,20 @@ class EbusClient(threading.Thread):
             self.relax()
 
     def state_running(self):
-        for dev in self.devices:
-            dev.process()
+        try:
+            for dev in self.devices:
+                dev.process()
+        except OSError as e:
+            self.logger.error("OS error: {0}".format(e))
+            self.set_state(EbusClientState.preparing)
         time.sleep(10)
 
     def run(self):
         while not self.stopped():
             if self.state == EbusClientState.initializing:
                 self.state_initializing()
+            elif self.state == EbusClientState.preparing:
+                self.state_preparing()
             elif self.state == EbusClientState.connecting:
                 self.state_connecting()
             elif self.state == EbusClientState.scanning:

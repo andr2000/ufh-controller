@@ -48,7 +48,7 @@ class Ebusd(Thread):
                 self.sock.connect(((cfg.ebusd_address(), cfg.ebusd_port())))
         except socket.error:
             self.sock = None
-            raise socket.error(socket.error)
+            raise OSError('Not connected yet')
         self.logger.info('Connected')
 
     def disconnect(self):
@@ -67,7 +67,7 @@ class Ebusd(Thread):
             else:
                 try:
                     self.connect()
-                except socket.error:
+                except OSError:
                     time.sleep(EBUSD_RECONNECT_TIMEOUT)
                     pass
 
@@ -129,12 +129,19 @@ class Ebusd(Thread):
         return result.split(';')
 
     def __recvall(self):
-        chunk_sz = 4096
+        # All socket access is serialized with the lock, so we can assume
+        # that we can to read all the data in the receive buffer
         result = b''
         while True:
-            chunk = self.sock.recv(chunk_sz)
+            # Read as many bytes as we can
+            chunk = self.sock.recv(4096)
+            if not chunk:
+                # Disconnected - reconnect
+                self.sock = None
+                raise OSError('Disconnected from ebusd')
             result += chunk
-            if len(chunk) < chunk_sz:
+            # ebusd response ends with a single empty line.
+            if chunk.endswith(b'\n\n'):
                 break
         return result
 
@@ -143,8 +150,11 @@ class Ebusd(Thread):
             command += '\n'
             self.sock.sendall(command.encode())
             result = self.__recvall().decode('utf-8').strip()
-        except socket.timeout:
-            raise socket.timeout(socket.timeout)
+            # Check if reply starts with error message
+            if result.startswith('ERR:'):
+                raise ValueError(result)
         except socket.error:
-            raise socket.error(socket.error)
+            # Disconnected - reconnect
+            self.sock = None
+            raise OSError('Disconnected from ebusd')
         return result

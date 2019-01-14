@@ -44,47 +44,49 @@ class DeviceBAI(object):
         self.power_max_hc = float(power_max_hc[0])
 
     def process(self):
-        res = self.ebusd.read_parameter(
-                self.message['flow_temp'], self.scan_result.address)
-        temp_flow = float(res[0])
+        try:
+            res = self.ebusd.read_parameter(
+                    self.message['flow_temp'], self.scan_result.address)
+            temp_flow = float(res[0])
 
-        res = self.ebusd.read_parameter(
-                self.message['flow_temp_des'], self.scan_result.address)
-        temp_flow_des = float(res[0])
+            res = self.ebusd.read_parameter(
+                    self.message['flow_temp_des'], self.scan_result.address)
+            temp_flow_des = float(res[0])
 
-        res = self.ebusd.read_parameter(
-                self.message['return_temp'], self.scan_result.address)
-        temp_return = float(res[0])
+            res = self.ebusd.read_parameter(
+                    self.message['return_temp'], self.scan_result.address)
+            temp_return = float(res[0])
 
-        res = self.ebusd.read_parameter(
-                self.message['flame'], self.scan_result.address)
-        flame = res[0]
+            res = self.ebusd.read_parameter(
+                    self.message['flame'], self.scan_result.address)
+            flame = res[0]
 
-        res = self.ebusd.read_parameter(
-                self.message['power_current_hc'], self.scan_result.address)
-        power = float(res[0])
-        power_kw = self.power_max_hc * power / 100.0
+            res = self.ebusd.read_parameter(
+                    self.message['power_current_hc'], self.scan_result.address)
+            power = float(res[0])
+            power_kw = self.power_max_hc * power / 100.0
 
-        res = self.ebusd.read_parameter(
-                self.message['water_pressure'], self.scan_result.address)
-        water_pressure = float(res[0])
+            res = self.ebusd.read_parameter(
+                    self.message['water_pressure'], self.scan_result.address)
+            water_pressure = float(res[0])
 
-        res = self.ebusd.read_parameter(
-                self.message['pump_power'], self.scan_result.address)
-        pump_power = int(res[0])
+            res = self.ebusd.read_parameter(
+                    self.message['pump_power'], self.scan_result.address)
+            pump_power = int(res[0])
 
-        res = self.ebusd.read_parameter(
-                self.message['status01'], self.scan_result.address)
-        status01 = ';'.join(res)
+            res = self.ebusd.read_parameter(
+                    self.message['status01'], self.scan_result.address)
+            status01 = ';'.join(res)
 
-        res = self.ebusd.read_parameter(
-                self.message['status02'], self.scan_result.address)
-        status02 = ';'.join(res)
+            res = self.ebusd.read_parameter(
+                    self.message['status02'], self.scan_result.address)
+            status02 = ';'.join(res)
 
-        self.tbl(datetime.datetime.now(), temp_flow_des,
-                temp_flow, temp_return, flame, power, power_kw,
-                water_pressure, pump_power, status01, status02)
-
+            self.tbl(datetime.datetime.now(), temp_flow_des,
+                    temp_flow, temp_return, flame, power, power_kw,
+                    water_pressure, pump_power, status01, status02)
+        except ValueError as e:
+            self.logger.error(e.strerror(e))
 
     def __register_message(self, msg):
         # Check what message it is and assign it properly
