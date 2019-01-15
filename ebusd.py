@@ -140,26 +140,25 @@ class Ebusd(Thread):
                 reply += ' -c ' + circuit
             if reply:
                 for line in reply.split('\n'):
+                    # Validate the message
                     try:
-                        result.append(EbusdMessage(line))
+                        msg = EbusdMessage(line)
+                        result.append(msg.name)
                     except ValueError:
                         self.logger.error('Unsupported ebusd parameter %s',
                                           line)
+                        continue
         return result
 
-    def read_parameter(self, msg, dest_addr=None):
+    def read_parameter(self, name, dest_addr=None):
         result = None
-        if msg.type != EbusdType.read:
-            self.logger.error('Parameter %s has wrong type %s' %
-                              (msg.name, msg.type))
-            return result
         with self.lock:
             args = ''
             if dest_addr:
                 args += '-d ' + dest_addr + ' '
-            args += msg.name
+            args += name
             result = self.__read('read -f ' + args)
-        return result.split(';')
+        return result
 
     def __recvall(self):
         # All socket access is serialized with the lock, so we can assume

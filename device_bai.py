@@ -38,76 +38,44 @@ class DeviceBAI(object):
             circuit=scan_result.circuit)
         self.message = {}
         for msg in self.supported_messages:
-            self.__register_message(msg)
-        power_max_hc = self.ebusd.read_parameter(
-            self.message['power_max_hc'], self.scan_result.address)
-        self.power_max_hc = float(power_max_hc[0])
+            self.logger.debug('Supported message: %s' % msg)
+        self.power_max_hc_kw = self.bai_read_float_0('PartloadHcKW')
+
+    def bai_read_float_0(self, msg):
+        res = self.ebusd.read_parameter(msg,
+                                        self.scan_result.address).split(';')
+        return float(res[0])
+
+    def bai_read_int_0(self, msg):
+        res = self.ebusd.read_parameter(msg,
+                                        self.scan_result.address).split(';')
+        return int(res[0])
+
+    def bai_read_str(self, msg):
+        res = self.ebusd.read_parameter(msg,
+                                        self.scan_result.address)
+        return res
 
     def process(self):
         try:
-            res = self.ebusd.read_parameter(
-                    self.message['flow_temp'], self.scan_result.address)
-            temp_flow = float(res[0])
+            temp_flow = self.bai_read_float_0('FlowTemp')
+            temp_flow_des = self.bai_read_float_0('FlowTempDesired')
+            temp_return = self.bai_read_float_0('ReturnTemp')
 
-            res = self.ebusd.read_parameter(
-                    self.message['flow_temp_des'], self.scan_result.address)
-            temp_flow_des = float(res[0])
+            flame = self.bai_read_str('Flame')
 
-            res = self.ebusd.read_parameter(
-                    self.message['return_temp'], self.scan_result.address)
-            temp_return = float(res[0])
+            power = self.bai_read_float_0('ModulationTempDesired')
+            power_kw = self.power_max_hc_kw * power / 100.0
 
-            res = self.ebusd.read_parameter(
-                    self.message['flame'], self.scan_result.address)
-            flame = res[0]
+            water_pressure = self.bai_read_float_0('WaterPressure')
 
-            res = self.ebusd.read_parameter(
-                    self.message['power_current_hc'], self.scan_result.address)
-            power = float(res[0])
-            power_kw = self.power_max_hc * power / 100.0
+            pump_power = self.bai_read_int_0('PumpPower')
 
-            res = self.ebusd.read_parameter(
-                    self.message['water_pressure'], self.scan_result.address)
-            water_pressure = float(res[0])
-
-            res = self.ebusd.read_parameter(
-                    self.message['pump_power'], self.scan_result.address)
-            pump_power = int(res[0])
-
-            res = self.ebusd.read_parameter(
-                    self.message['status01'], self.scan_result.address)
-            status01 = ';'.join(res)
-
-            res = self.ebusd.read_parameter(
-                    self.message['status02'], self.scan_result.address)
-            status02 = ';'.join(res)
+            status01 = self.bai_read_str('Status01')
+            status02 = self.bai_read_str('Status02')
 
             self.tbl(datetime.datetime.now(), temp_flow_des,
-                    temp_flow, temp_return, flame, power, power_kw,
-                    water_pressure, pump_power, status01, status02)
+                     temp_flow, temp_return, flame, power, power_kw,
+                     water_pressure, pump_power, status01, status02)
         except ValueError as e:
             self.logger.error(str(e))
-
-    def __register_message(self, msg):
-        # Check what message it is and assign it properly
-        if msg.name == 'FlowTemp':
-            self.message['flow_temp'] = msg
-        elif msg.name == 'FlowTempDesired':
-            self.message['flow_temp_des'] = msg
-        elif msg.name == 'ReturnTemp':
-            self.message['return_temp'] = msg
-        elif msg.name == 'Flame':
-            self.message['flame'] = msg
-        elif msg.name == 'ModulationTempDesired':
-            self.message['power_current_hc'] = msg
-        elif msg.name == 'PartloadHcKW':
-            self.message['power_max_hc'] = msg
-        elif msg.name == 'WaterPressure':
-            self.message['water_pressure'] = msg
-        elif msg.name == 'Status01':
-            self.message['status01'] = msg
-        elif msg.name == 'Status02':
-            self.message['status02'] = msg
-        elif msg.name == 'PumpPower':
-            self.message['pump_power'] = msg
-
