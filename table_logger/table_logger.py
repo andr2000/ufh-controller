@@ -63,8 +63,6 @@ import datetime
 import csv
 import io
 
-import numpy as np
-
 from . import fmt
 
 PY2 = sys.version_info[0] == 2
@@ -77,16 +75,9 @@ except NameError:
 type2fmt = {
     # floats
     float: fmt.FloatFormatter,
-    np.float: fmt.FloatFormatter,
-    np.float32: fmt.FloatFormatter,
-    np.float64: fmt.FloatFormatter,
 
     # int
     int: fmt.IntegerFormatter,
-    np.int: fmt.IntegerFormatter,
-    np.int16: fmt.IntegerFormatter,
-    np.int32: fmt.IntegerFormatter,
-    np.int64: fmt.IntegerFormatter,
 
     datetime.datetime: fmt.DatetimeFormatter,
     datetime.date: fmt.DateFormatter,
