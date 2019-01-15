@@ -7,7 +7,7 @@ import version
 
 
 def main():
-    global ebus_client
+    ebus = None
 
     try:
         logging.basicConfig(level=logging.DEBUG)
@@ -16,8 +16,8 @@ def main():
 
         cfg = config.Config()
 
-        ebus_client = ebus_client.EbusClient()
-        ebus_client.start()
+        ebus = ebus_client.EbusClient()
+        ebus.start()
 
         if cfg.daemonize():
             pass
@@ -26,11 +26,11 @@ def main():
                 time.sleep(1)
 
     finally:
-        if ebus_client:
-            ebus_client.stop()
-            ebus_client.join()
-            ebus_client.destroy()
-            ebus_client = None
+        if ebus:
+            ebus.stop()
+            ebus.join()
+            ebus.destroy()
+            ebus = None
         logger.info('Done')
 
 
