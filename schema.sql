@@ -12,5 +12,5 @@ CREATE TABLE `boiler` (
 	`status01`	TEXT,
 	`status02`	TEXT,
 	`set_mode_r`	TEXT,
-	PRIMARY KEY(datetime_unix)
+	PRIMARY KEY(datetime_eet_unix)
 ) WITHOUT ROWID;
