@@ -1,3 +1,4 @@
+from enum import Enum
 import logging
 import socket
 import threading
@@ -9,7 +10,39 @@ from ebusd_types import (EbusdType, EbusdMessage, EbusdScanResult)
 
 EBUSD_SOCK_TIMEOUT = 5
 EBUSD_RECONNECT_TIMEOUT = 5
+EBUSD_IO_RETRY_COUNT = 3
 
+
+class EbusdErr(Enum):
+    RESULT_ERR_GENERIC_IO = 'ERR: generic I/O error'
+    RESULT_ERR_DEVICE = 'ERR: generic device error'
+    RESULT_ERR_SEND = 'ERR: send error'
+    RESULT_ERR_ESC = 'ERR: invalid escape sequence'
+    RESULT_ERR_TIMEOUT = 'ERR: read timeout'
+    RESULT_ERR_NOTFOUND = 'ERR: element not found'
+    RESULT_ERR_EOF = 'ERR: end of input reached'
+    RESULT_ERR_INVALID_ARG = 'ERR: invalid argument'
+    RESULT_ERR_INVALID_NUM = 'ERR: invalid numeric argument'
+    RESULT_ERR_INVALID_ADDR = 'ERR: invalid address'
+    RESULT_ERR_INVALID_POS = 'ERR: invalid position'
+    RESULT_ERR_OUT_OF_RANGE = 'ERR: argument value out of valid range'
+    RESULT_ERR_INVALID_PART = 'ERR: invalid part type'
+    RESULT_ERR_MISSING_ARG = 'ERR: missing argument'
+    RESULT_ERR_INVALID_LIST = 'ERR: invalid value list'
+    RESULT_ERR_DUPLICATE = 'ERR: duplicate entry'
+    RESULT_ERR_DUPLICATE_NAME = 'ERR: duplicate name'
+    RESULT_ERR_BUS_LOST = 'ERR: arbitration lost'
+    RESULT_ERR_CRC = 'ERR: CRC error'
+    RESULT_ERR_ACK = 'ERR: ACK error'
+    RESULT_ERR_NAK = 'ERR: NAK received'
+    RESULT_ERR_NO_SIGNAL = 'ERR: no signal'
+    RESULT_ERR_SYN = 'ERR: SYN received'
+    RESULT_ERR_SYMBOL = 'ERR: wrong symbol received'
+    RESULT_ERR_NOTAUTHORIZED = 'ERR: not authorized'
+
+    @classmethod
+    def has_value(cls, value):
+        return any(value == item.value for item in cls)
 
 class Ebusd(Thread):
     def __del__(self):
@@ -148,10 +181,15 @@ class Ebusd(Thread):
     def __read(self, command):
         try:
             command += '\n'
-            self.sock.sendall(command.encode())
-            result = self.__recvall().decode('utf-8').strip()
-            # Check if reply starts with error message
-            if result.startswith('ERR:'):
+            for i in range(EBUSD_IO_RETRY_COUNT):
+                self.sock.sendall(command.encode())
+                result = self.__recvall().decode('utf-8').strip()
+                # FIXME: sometimes ebusd returns 'Element not found' error
+                # even for known messages, so try harder
+                if result != EbusdErr.RESULT_ERR_NOTFOUND.value:
+                    break
+            # Check if reply is an error message
+            if EbusdErr.has_value(result):
                 raise ValueError(result)
         except socket.error:
             # Disconnected - reconnect
