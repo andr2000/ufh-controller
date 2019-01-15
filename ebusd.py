@@ -44,6 +44,7 @@ class EbusdErr(Enum):
     def has_value(cls, value):
         return any(value == item.value for item in cls)
 
+
 class Ebusd(Thread):
     def __del__(self):
         self.disconnect()
