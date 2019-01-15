@@ -3,6 +3,9 @@ import logging
 
 from table_logger import TableLogger
 
+# type (r[1-9];w;u),circuit,name,[comment],[QQ],ZZ,PBSB,[ID],field1,part (m/s),datatypes/templates,divider/values,unit,comment
+SetModeR = 'r,bai,SetModeR,Operation Mode,,,b511,0100,,,temp0,,,,flowtempdesired,,temp1,,,,hwctempdesired,,temp1,,,,hwcflowtempdesired,,temp0,,,,,,IGN:1,,,,disablehc,,BI0,,,,disablehwctapping,,BI1,,,,disablehwcload,,BI2,,,,,,IGN:1,,,,remoteControlHcPump,,BI0,,,,releaseBackup,,BI1,,,,releaseCooling,,BI2,,,,'
+
 class DeviceBAI(object):
     ebusd = None
 
@@ -10,7 +13,7 @@ class DeviceBAI(object):
         self.logger = logging.getLogger(__name__)
 
         self.tbl = TableLogger(
-                columns='timestamp,FlowDes,Flow,Return,Flame,Power,PowKW,WaterPres,PumpPow,Status01, Status02',
+                columns='timestamp,FlowDes,Flow,Return,Flame,Power,PowKW,WaterPres,PumpPow,Status01,Status02,SetModeR',
                 formatters={
                     'timestamp': '{:%Y-%m-%d %H:%M:%S}'.format,
                     'FlowDes': '{:,.2f}'.format,
@@ -24,7 +27,7 @@ class DeviceBAI(object):
                 colwidth={
                     'Flow':6, 'FlowDes':6, 'Return':6, 'Flame':5, 'Power':5,
                     'PowKW':5, 'WaterPres':9, 'PumpPow':7, 'Status01':25,
-                    'Status02':20
+                    'Status02':20, 'SetModeR':27
                     })
 
         self.logger.info(
@@ -79,8 +82,11 @@ class DeviceBAI(object):
             status01 = self.bai_read_str('Status01')
             status02 = self.bai_read_str('Status02')
 
+            set_mode_r = self.bai_read_experimental(SetModeR)
+
             self.tbl(datetime.datetime.now(), temp_flow_des,
                      temp_flow, temp_return, flame, power, power_kw,
-                     water_pressure, pump_power, status01, status02)
+                     water_pressure, pump_power, status01, status02,
+                     set_mode_r)
         except ValueError as e:
             self.logger.error(str(e))
