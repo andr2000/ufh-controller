@@ -1,5 +1,5 @@
 CREATE TABLE `boiler` (
-	`datetime_eet_unix`	INTEGER NOT NULL UNIQUE,
+	`datetime_unix`	INTEGER NOT NULL UNIQUE,
 	`temp_flow_target_100`	INTEGER,
 	`temp_flow_100`	INTEGER,
 	`temp_flow_sensor_ok`	INTEGER,
@@ -12,5 +12,5 @@ CREATE TABLE `boiler` (
 	`status01`	TEXT,
 	`status02`	TEXT,
 	`set_mode_r`	TEXT,
-	PRIMARY KEY(datetime_eet_unix)
+	PRIMARY KEY(datetime_unix)
 ) WITHOUT ROWID;
