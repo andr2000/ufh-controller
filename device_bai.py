@@ -56,6 +56,11 @@ class DeviceBAI(object):
                                         self.scan_result.address)
         return res
 
+    def bai_read_experimental(self, msg):
+        res = self.ebusd.read_exp_parameter(msg,
+                                            self.scan_result.address)
+        return res
+
     def process(self):
         try:
             temp_flow = self.bai_read_float_0('FlowTemp')

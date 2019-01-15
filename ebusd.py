@@ -160,6 +160,10 @@ class Ebusd(Thread):
             result = self.__read('read -f ' + args)
         return result
 
+    def read_exp_parameter(self, descriptor, dest_addr):
+        args = '-def \"' + descriptor + '\"'
+        return self.read_parameter(args, dest_addr)
+
     def __recvall(self):
         # All socket access is serialized with the lock, so we can assume
         # that we can to read all the data in the receive buffer
