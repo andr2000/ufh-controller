@@ -86,7 +86,7 @@ class DeviceBAI(object):
                     temp_flow, temp_return, flame, power, power_kw,
                     water_pressure, pump_power, status01, status02)
         except ValueError as e:
-            self.logger.error(e.strerror(e))
+            self.logger.error(str(e))
 
     def __register_message(self, msg):
         # Check what message it is and assign it properly
