@@ -50,6 +50,11 @@ class DeviceBAI(object):
                                         self.scan_result.address).split(';')
         return float(res[0])
 
+    def bai_read_float_0_status(self, msg, status_idx):
+        res = self.ebusd.read_parameter(msg,
+                                        self.scan_result.address).split(';')
+        return float(res[0]),res[status_idx]
+
     def bai_read_int_0(self, msg):
         res = self.ebusd.read_parameter(msg,
                                         self.scan_result.address).split(';')
