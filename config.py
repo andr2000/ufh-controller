@@ -27,3 +27,10 @@ class Config(object):
 
     def daemonize(self):
         return False
+
+    def db_get_database_file(self):
+        return '/tmp/vaillant.db'
+
+    def db_get_schema_file(self):
+        return '${PWD}/schema.sql'
+
