@@ -36,4 +36,17 @@ class Database(object):
     def _create(self, db_file, sql_file):
         self.logger.info ('Creating database at %s using schema %s' %
                 (db_file, sql_file))
+        try:
+            fd = open(sql_file, 'r')
+            script = fd.read()
+            db = sqlite3.connect(db_file)
+            cur = db.cursor()
+            cur.executescript(script)
+        except OSError as e:
+            self.logger.error(str(e))
+        finally:
+            if fd:
+                fd.close()
+            if db:
+                db.close()
 
