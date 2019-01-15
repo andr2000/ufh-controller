@@ -72,9 +72,9 @@ class DeviceBAI(object):
 
     def process(self):
         try:
-            temp_flow = self.bai_read_float_0('FlowTemp')
+            temp_flow,temp_flow_status = self.bai_read_float_0_status('FlowTemp', 1)
             temp_flow_des = self.bai_read_float_0('FlowTempDesired')
-            temp_return = self.bai_read_float_0('ReturnTemp')
+            temp_return,temp_return_status = self.bai_read_float_0_status('ReturnTemp', 2)
 
             flame = self.bai_read_str('Flame')
 
