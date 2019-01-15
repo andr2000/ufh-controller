@@ -33,6 +33,21 @@ class Database(object):
     def expand_path(path):
         return os.path.normpath(os.path.expandvars(os.path.expanduser(path)))
 
+    @staticmethod
+    def parse_frac(val, power):
+        l = len(val)
+        dotpos = val.find('.')
+        if dotpos == -1:
+            return int(val) * (10 ** power)
+
+        i, _, f = val.partition(".")
+
+        if len(f) > power:
+            l -= len(f) - power
+            f = f[:power]
+
+        return int(i + f) * (10 ** (power - (l - dotpos - 1)))
+
     def _create(self, db_file, sql_file):
         self.logger.info ('Creating database at %s using schema %s' %
                 (db_file, sql_file))
