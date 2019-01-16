@@ -59,9 +59,4 @@ class Database(object):
             cur.executescript(script)
         except OSError as e:
             self.logger.error(str(e))
-        finally:
-            if fd:
-                fd.close()
-            if db:
-                db.close()
 
