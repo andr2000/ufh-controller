@@ -68,7 +68,7 @@ class Database(object):
     def store_boiler(self, values):
         try:
             vals = []
-            vals.append(int(int(time.time())))
+            vals.append(int(time.time()))
             vals.append(self.parse_frac(values['FlowTempDesired'], 2))
             vals.append(self.parse_frac(values['FlowTemp'], 2))
             vals.append(values['FlowTemp_sensor'])
