@@ -1,6 +1,7 @@
 import logging
 import os
 import sqlite3
+import time
 
 import config
 
@@ -24,10 +25,10 @@ class Database(object):
     def __init__(self):
         self.logger.info('Openning database')
         cfg = config.Config()
-        db_file = self.expand_path(cfg.db_get_database_file())
-        if not os.path.isfile(db_file):
+        self.db_file = self.expand_path(cfg.db_get_database_file())
+        if not os.path.isfile(self.db_file):
             sql_file = self.expand_path(cfg.db_get_schema_file())
-            self._create(db_file, sql_file)
+            self._create(self.db_file, sql_file)
 
     @staticmethod
     def expand_path(path):
@@ -60,3 +61,34 @@ class Database(object):
         except OSError as e:
             self.logger.error(str(e))
 
+    def store_boiler(self, values):
+        try:
+            vals = []
+            vals.append(int(int(time.time())))
+            vals.append(self.parse_frac(values['FlowTempDesired'], 2))
+            vals.append(self.parse_frac(values['FlowTemp'], 2))
+            vals.append(values['FlowTemp_sensor'])
+            vals.append(self.parse_frac(values['ReturnTemp'], 2))
+            vals.append(values['ReturnTemp_sensor'])
+            vals.append(values['Flame'])
+            vals.append(self.parse_frac(values['PowerPercent'], 2))
+            vals.append(self.parse_frac(values['WaterPressure'], 3))
+            vals.append(self.parse_frac(values['PumpPower'], 2))
+            vals.append(values['Status01'])
+            vals.append(values['Status02'])
+            vals.append(values['SetModeR'])
+            SQL = (
+                'INSERT INTO boiler (datetime_unix,'
+                'temp_flow_target_100,temp_flow_100,temp_flow_sensor,'
+                'temp_return_100,temp_return_sensor,'
+                'flame_state,power_hc_percent_100,water_pressure_1000,'
+                'power_pump_100,status01,status02,set_mode_r) '
+                'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)'
+            )
+            with sqlite3.connect(self.db_file) as con:
+                con.execute(SQL, vals)
+                con.commit()
+        except sqlite3.IntegrityError:
+            self.logger.error('Could not insert into boiler')
+        except Exception as e:
+            self.logger.error(str(e))

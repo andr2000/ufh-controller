@@ -1,3 +1,4 @@
+import database
 import datetime
 import logging
 
@@ -97,3 +98,21 @@ class DeviceBAI(object):
                      status01, status02, set_mode_r)
         except ValueError as e:
             self.logger.error(str(e))
+
+        # store to the database
+        values = {}
+        values['FlowTemp'] = temp_flow
+        values['FlowTemp_sensor'] = temp_flow_status
+        values['FlowTempDesired'] = temp_flow_des
+        values['ReturnTemp'] = temp_return
+        values['ReturnTemp_sensor'] = temp_return_status
+        values['Flame'] = flame
+        values['PowerPercent'] = power
+        values['WaterPressure'] = water_pressure
+        values['PumpPower'] = pump_power
+        values['Status01'] = status01
+        values['Status02'] = status02
+        values['SetModeR'] = set_mode_r
+        db = database.Database()
+        db.store_boiler(values)
+
