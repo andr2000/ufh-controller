@@ -13,6 +13,7 @@ class Database(object):
         if Database.__instance is None:
             Database.__instance = object.__new__(cls)
             Database.__instance.logger = logging.getLogger(__name__)
+            Database.__instance.__initialized = False
         return Database.__instance
 
     def __del__(self):
@@ -23,7 +24,10 @@ class Database(object):
         del cls.__instance
 
     def __init__(self):
-        self.logger.info('Openning database')
+        if self.__initialized:
+            return
+        self.__initialized = True
+        self.logger.info('Openning the database')
         cfg = config.Config()
         self.db_file = self.expand_path(cfg.db_get_database_file())
         if not os.path.isfile(self.db_file):
