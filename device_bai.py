@@ -23,6 +23,7 @@ class DeviceBAI(object):
                 'Flame': '{:3}'.format,
                 'Power': '{:,.2f}'.format,
                 'PowKW': '{:,.2f}'.format,
+                'PumpPow': '{:,.2f}'.format,
                 'WaterPres': '{:,.3f}'.format,
             },
             colwidth={
@@ -43,22 +44,22 @@ class DeviceBAI(object):
         self.message = {}
         for msg in self.supported_messages:
             self.logger.debug('Supported message: %s' % msg)
-        self.power_max_hc_kw = self.bai_read_float_0('PartloadHcKW')
+        self.power_max_hc_kw = float(self.bai_read_float_0('PartloadHcKW'))
 
     def bai_read_float_0(self, msg):
         res = self.ebusd.read_parameter(msg,
                                         self.scan_result.address).split(';')
-        return float(res[0])
+        return res[0]
 
     def bai_read_float_0_status(self, msg, status_idx):
         res = self.ebusd.read_parameter(msg,
                                         self.scan_result.address).split(';')
-        return float(res[0]),res[status_idx]
+        return res[0],res[status_idx]
 
     def bai_read_int_0(self, msg):
         res = self.ebusd.read_parameter(msg,
                                         self.scan_result.address).split(';')
-        return int(res[0])
+        return res[0]
 
     def bai_read_str(self, msg):
         res = self.ebusd.read_parameter(msg,
@@ -79,7 +80,7 @@ class DeviceBAI(object):
             flame = self.bai_read_str('Flame')
 
             power = self.bai_read_float_0('ModulationTempDesired')
-            power_kw = self.power_max_hc_kw * power / 100.0
+            power_kw = self.power_max_hc_kw * float(power) / 100.0
 
             water_pressure = self.bai_read_float_0('WaterPressure')
 
@@ -90,9 +91,9 @@ class DeviceBAI(object):
 
             set_mode_r = self.bai_read_experimental(SetModeR)
 
-            self.tbl(datetime.datetime.now(), temp_flow_des,
-                     temp_flow, temp_return, flame, power, power_kw,
-                     water_pressure, pump_power, status01, status02,
-                     set_mode_r)
+            self.tbl(datetime.datetime.now(), float(temp_flow_des),
+                     float(temp_flow), float(temp_return), flame, float(power),
+                     power_kw, float(water_pressure), float(pump_power),
+                     status01, status02, set_mode_r)
         except ValueError as e:
             self.logger.error(str(e))
