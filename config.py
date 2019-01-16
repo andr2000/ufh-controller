@@ -1,36 +1,28 @@
 import argparse
 import logging
 
+log = logging.getLogger(__name__)
 
-class Config(object):
-    __instance = None
+__args = None
+options = {}
 
-    def __new__(cls):
-        if Config.__instance is None:
-            Config.__instance = object.__new__(cls)
-            Config.__instance.logger = logging.getLogger(__name__)
-            Config.__instance.__parse_args()
-        return Config.__instance
 
-    def __parse_args(self):
-        self.logger.info('Reading configuration')
-        parser = argparse.ArgumentParser()
-        parser.add_argument('--config', dest='config_file', required=False,
-                            help="Use configuration file for tuning")
-        self.__args = parser.parse_args()
+def __init_config():
+    global __args
+    global options
 
-    def ebusd_address(self):
-        return 'localhost'
+    log.info('Reading configuration')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', dest='config_file', required=False,
+                        help="Use configuration file for tuning")
+    __args = parser.parse_args()
+    # TODO: Eventually the below will be read from the config file and
+    # command line arguments.
+    options['ebusd_address'] = 'localhost'
+    options['ebusd_port'] = 8888
+    options['daemonize'] = False
+    options['db_database_file'] = '${PWD}/ufh-controller.db'
+    options['db_schema_file'] = '${PWD}/schema.sql'
 
-    def ebusd_port(self):
-        return 8888
 
-    def daemonize(self):
-        return False
-
-    def db_get_database_file(self):
-        return '${PWD}/ufh-controller.db'
-
-    def db_get_schema_file(self):
-        return '${PWD}/schema.sql'
-
+__init_config()

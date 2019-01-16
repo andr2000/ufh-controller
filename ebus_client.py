@@ -54,9 +54,14 @@ class EbusClient(threading.Thread):
 
     def stop_ebusd(self):
         if self.ebusd:
-            self.ebusd.stop()
-            self.ebusd.join()
-            self.ebusd = None
+            try:
+                self.ebusd.stop()
+                self.ebusd.join()
+            except RuntimeError:
+                pass
+            finally:
+                del self.ebusd
+                self.ebusd = None
 
     @staticmethod
     def relax():

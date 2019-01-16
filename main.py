@@ -1,43 +1,39 @@
 import logging
+# FIXME: there should be some more elegant way to setup the logger globally
+logging.basicConfig(level=logging.DEBUG)
+
 import time
 
 import config
-import database
 import ebus_client
 import version
 
 
+log = logging.getLogger(__name__)
+
 def main():
     ebus = None
-    db = None
 
     try:
-        logging.basicConfig(level=logging.DEBUG)
-        logger = logging.getLogger(__name__)
-        logger.info('This is %s v%s' % (version.PRODUCT, version.VERSION))
-
-        cfg = config.Config()
-
-        db = database.Database()
+        log.info('This is %s v%s' % (version.PRODUCT, version.VERSION))
 
         ebus = ebus_client.EbusClient()
         ebus.start()
 
-        if cfg.daemonize():
+        if config.options['daemonize']:
             pass
         else:
             while True:
                 time.sleep(1)
-
     finally:
         if ebus:
-            ebus.stop()
-            ebus.join()
-            ebus.destroy()
-            ebus = None
-        if db:
-            db = None
-        logger.info('Done')
+            try:
+                ebus.stop()
+                ebus.join()
+            except RuntimeError:
+                pass
+            del ebus
+        log.info('Done')
 
 
 if __name__ == '__main__':

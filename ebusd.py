@@ -72,14 +72,14 @@ class Ebusd(Thread):
     def connect(self):
         self.logger.info('Connecting to ebusd...')
         try:
-            cfg = config.Config()
             with self.lock:
                 if self.sock:
                     self.sock.close()
                     self.sock = None
                 self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.sock.settimeout(EBUSD_SOCK_TIMEOUT)
-                self.sock.connect(((cfg.ebusd_address(), cfg.ebusd_port())))
+                self.sock.connect(((config.options['ebusd_address'],
+                                    config.options['ebusd_port'])))
         except socket.error:
             self.sock = None
             raise OSError('Not connected yet')

@@ -55,7 +55,7 @@ class DeviceBAI(object):
     def bai_read_float_0_status(self, msg, status_idx):
         res = self.ebusd.read_parameter(msg,
                                         self.scan_result.address).split(';')
-        return res[0],res[status_idx]
+        return res[0], res[status_idx]
 
     def bai_read_int_0(self, msg):
         res = self.ebusd.read_parameter(msg,
@@ -74,9 +74,11 @@ class DeviceBAI(object):
 
     def process(self):
         try:
-            temp_flow,temp_flow_status = self.bai_read_float_0_status('FlowTemp', 1)
+            temp_flow, temp_flow_status = self.bai_read_float_0_status(
+                'FlowTemp', 1)
             temp_flow_des = self.bai_read_float_0('FlowTempDesired')
-            temp_return,temp_return_status = self.bai_read_float_0_status('ReturnTemp', 2)
+            temp_return, temp_return_status = self.bai_read_float_0_status(
+                'ReturnTemp', 2)
 
             flame = self.bai_read_str('Flame')
 
@@ -113,6 +115,4 @@ class DeviceBAI(object):
         values['Status01'] = status01
         values['Status02'] = status02
         values['SetModeR'] = set_mode_r
-        db = database.Database()
-        db.store_boiler(values)
-
+        database.store_boiler(values)
