@@ -1,10 +1,9 @@
 import logging
 logger = logging.getLogger()
-logging.basicConfig(level=logging.DEBUG)
-
 import time
 
 import config
+logging.basicConfig(level=config.options['loglevel'])
 import ebus
 import version
 
@@ -19,6 +18,7 @@ def main():
         ebus_devs.start()
 
         if config.options['daemonize']:
+            logger.info('Running as daemon')
             pass
         else:
             while True:

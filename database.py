@@ -30,8 +30,7 @@ def parse_frac(val, power):
 
 
 def create(db_file, schema_file):
-    logger.info('Creating database at %s using schema %s' %
-                (db_file, schema_file))
+    logger.info('Creating database at %s using schema %s' % (db_file, schema_file))
     try:
         fd = open(schema_file, 'r')
         script = fd.read()
@@ -78,8 +77,8 @@ def store_boiler(values):
 def __init_database():
     global db_file
 
-    logger.info('Openning the database')
     db_file = expand_path(config.options['db_database_file'])
+    logger.info('Openning the database at %s', db_file)
     if not os.path.isfile(db_file):
         schema_file = expand_path(config.options['db_schema_file'])
         create(db_file, schema_file)

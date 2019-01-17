@@ -55,12 +55,13 @@ def connect():
     if sock:
         return
 
-    logger.info('Connecting to ebusd...')
+    address = config.options['ebusd_address']
+    port = config.options['ebusd_port']
+    logger.info('Connecting to ebusd at %s:%d...', address, port)
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(EBUSD_SOCK_TIMEOUT)
-        sock.connect(((config.options['ebusd_address'],
-                       config.options['ebusd_port'])))
+        sock.connect(((address, port)))
     except OSError:
         sock = None
         raise
