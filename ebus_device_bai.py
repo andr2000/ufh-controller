@@ -40,39 +40,39 @@ class EbusDeviceBAI(EbusDevice):
                 'Status02': 20, 'SetModeR': 27
             })
 
-        self.power_max_hc_kw = float(self.bai_read_0('PartloadHcKW'))
+        self.power_max_hc_kw = float(self.read_0('PartloadHcKW'))
 
     def process(self):
         super().process()
 
         try:
-            temp_flow, temp_flow_status = self.bai_read_0_status_at_idx(
+            temp_flow, temp_flow_status = self.read_0_status_at_idx(
                 'FlowTemp', 1)
-            self.bai_float_or_die(temp_flow)
+            self.float_or_die(temp_flow)
 
-            temp_flow_des = self.bai_read_0('FlowTempDesired')
-            self.bai_float_or_die(temp_flow_des)
+            temp_flow_des = self.read_0('FlowTempDesired')
+            self.float_or_die(temp_flow_des)
 
-            temp_return, temp_return_status = self.bai_read_0_status_at_idx(
+            temp_return, temp_return_status = self.read_0_status_at_idx(
                 'ReturnTemp', 2)
-            self.bai_float_or_die(temp_return)
+            self.float_or_die(temp_return)
 
-            flame = self.bai_read_0('Flame')
+            flame = self.read_0('Flame')
 
-            power = self.bai_read_0('ModulationTempDesired')
-            self.bai_float_or_die(power)
+            power = self.read_0('ModulationTempDesired')
+            self.float_or_die(power)
             power_kw = self.power_max_hc_kw * float(power) / 100.0
 
-            water_pressure = self.bai_read_0('WaterPressure')
-            self.bai_float_or_die(water_pressure)
+            water_pressure = self.read_0('WaterPressure')
+            self.float_or_die(water_pressure)
 
-            pump_power = self.bai_read_0('PumpPower')
-            self.bai_float_or_die(pump_power)
+            pump_power = self.read_0('PumpPower')
+            self.float_or_die(pump_power)
 
-            status01 = self.bai_read_raw('Status01')
-            status02 = self.bai_read_raw('Status02')
+            status01 = self.read_raw('Status01')
+            status02 = self.read_raw('Status02')
 
-            set_mode_r = self.bai_read_raw_experimental(self.SetModeR)
+            set_mode_r = self.read_raw_experimental(self.SetModeR)
 
             self.tbl(datetime.datetime.now(), float(temp_flow_des),
                      float(temp_flow), float(temp_return), flame, float(power),
