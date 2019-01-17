@@ -1,13 +1,12 @@
 import logging
+logger = logging.getLogger()
+logging.basicConfig(level=logging.DEBUG)
+
 import time
 
 import config
 import ebus
 import version
-
-
-logger = logging.getLogger()
-logging.basicConfig(level=logging.DEBUG)
 
 
 def main():
