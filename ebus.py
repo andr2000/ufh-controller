@@ -125,6 +125,8 @@ class Ebus(threading.Thread):
                 else:
                     self.logger.debug('Idle')
                     relax = True
+            except (ValueError):
+                pass
             except OSError as e:
                 self.logger.error("OS error: %s", str(e))
                 self.set_state(EbusClientState.initializing)

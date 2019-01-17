@@ -16,12 +16,22 @@ class EbusDevice():
     def __del__(self):
         self.logger.info('Done')
 
+    @staticmethod
+    def bai_float_or_die(self, val):
+        float(val)
+
+    @staticmethod
+    def bai_int_or_die(self, val):
+        int(val)
+
     def bai_read_0(self, msg):
         res = ebusd.read_parameter(msg, self.scan_result.address).split(';')
         return res[0]
 
     def bai_read_0_status_at_idx(self, msg, status_idx):
         res = ebusd.read_parameter(msg, self.scan_result.address).split(';')
+        if status_idx >= len(res):
+            raise ValueError()
         return res[0], res[status_idx]
 
 

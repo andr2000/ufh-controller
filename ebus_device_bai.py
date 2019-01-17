@@ -48,18 +48,26 @@ class EbusDeviceBAI(EbusDevice):
         try:
             temp_flow, temp_flow_status = self.bai_read_0_status_at_idx(
                 'FlowTemp', 1)
+            self.bai_float_or_die(temp_flow)
+
             temp_flow_des = self.bai_read_0('FlowTempDesired')
+            self.bai_float_or_die(temp_flow_des)
+
             temp_return, temp_return_status = self.bai_read_0_status_at_idx(
                 'ReturnTemp', 2)
+            self.bai_float_or_die(temp_return)
 
             flame = self.bai_read_0('Flame')
 
             power = self.bai_read_0('ModulationTempDesired')
+            self.bai_float_or_die(power)
             power_kw = self.power_max_hc_kw * float(power) / 100.0
 
             water_pressure = self.bai_read_0('WaterPressure')
+            self.bai_float_or_die(water_pressure)
 
             pump_power = self.bai_read_0('PumpPower')
+            self.bai_float_or_die(pump_power)
 
             status01 = self.bai_read_raw('Status01')
             status02 = self.bai_read_raw('Status02')
