@@ -1,7 +1,7 @@
 import argparse
 import logging
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 __args = None
 options = {}
@@ -11,7 +11,7 @@ def __init_config():
     global __args
     global options
 
-    log.info('Reading configuration')
+    logger.info('Reading configuration')
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', dest='config_file', required=False,
                         help="Use configuration file for tuning")

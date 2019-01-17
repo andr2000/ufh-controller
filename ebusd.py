@@ -1,16 +1,13 @@
 from enum import Enum
 import logging
 import socket
-import threading
-import time
-from threading import Thread
+
+logger = logging.getLogger(__name__)
 
 import config
-from ebusd_types import (EbusdType, EbusdMessage, EbusdScanResult)
+from ebusd_types import (EbusdMessage, EbusdScanResult)
 
 EBUSD_SOCK_TIMEOUT = 5
-EBUSD_RECONNECT_TIMEOUT = 5
-EBUSD_IO_RETRY_COUNT = 3
 
 
 class EbusdErr(Enum):
@@ -45,158 +42,139 @@ class EbusdErr(Enum):
         return any(value.startswith(item.value) for item in cls)
 
 
-class Ebusd(Thread):
-    def __del__(self):
-        self.disconnect()
+sock = None
 
-    def __init__(self):
-        super(Ebusd, self).__init__()
-        self.logger = logging.getLogger(__name__)
-        self.lock = threading.Lock()
-        self.sock = None
-        self._stop_event = threading.Event()
 
-    def __del__(self):
-        self.disconnect()
+def is_connected():
+    return sock
 
-    def stop(self):
-        self._stop_event.set()
 
-    def stopped(self):
-        return self._stop_event.is_set()
+def connect():
+    global sock
 
-    def is_connected(self):
-        with self.lock:
-            return self.sock
+    if sock:
+        return
 
-    def connect(self):
-        self.logger.info('Connecting to ebusd...')
-        try:
-            with self.lock:
-                if self.sock:
-                    self.sock.close()
-                    self.sock = None
-                self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.sock.settimeout(EBUSD_SOCK_TIMEOUT)
-                self.sock.connect(((config.options['ebusd_address'],
-                                    config.options['ebusd_port'])))
-        except socket.error:
-            self.sock = None
-            raise OSError('Not connected yet')
-        self.logger.info('Connected')
+    logger.info('Connecting to ebusd...')
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(EBUSD_SOCK_TIMEOUT)
+        sock.connect(((config.options['ebusd_address'],
+                       config.options['ebusd_port'])))
+    except OSError:
+        sock = None
+        raise
+    logger.info('Connected to ebusd')
 
-    def disconnect(self):
-        with self.lock:
-            if self.sock:
-                self.logger.info('Disconnecting from ebusd...')
-                self.sock.close()
-                self.logger.info('Disconnected')
-            self.sock = None
 
-    def run(self):
-        # This is a reconnect thread.
-        while not self.stopped():
-            if self.sock:
-                time.sleep(EBUSD_RECONNECT_TIMEOUT)
-            else:
-                try:
-                    self.connect()
-                except OSError:
-                    time.sleep(EBUSD_RECONNECT_TIMEOUT)
-                    pass
+def disconnect():
+    global sock
 
-    def scan_devices(self):
-        result = []
-        reply = self.__scan(result=True)
-        if reply:
-            for line in reply.split('\n'):
-                self.logger.debug('scanned %s' % line)
-                try:
-                    result.append(EbusdScanResult(line))
-                except Exception as e:
-                    self.logger.error('Skipping scan result %s: %s' %
-                                      (line, str(e)))
-        return result
+    if sock:
+        logger.info('Disconnecting from ebusd...')
+        sock.close()
+        logger.info('Disconnected from ebusd')
+    sock = None
 
-    def __scan(self, result=True, full=False, address=''):
-        cmd = 'scan '
-        if result:
-            cmd += 'result'
-        elif full:
-            cmd += 'full'
-        elif address:
-            cmd += address
-        else:
-            raise ValueError('Invalid combination of parameters')
-        with self.lock:
-            reply = self.__read(cmd)
-            return reply
 
-    def get_supported_messages(self, circuit=None):
-        self.logger.info('Querying supported messages...')
-        result = []
-        with self.lock:
-            reply = self.__read('find -F type,name')
-            if circuit:
-                reply += ' -c ' + circuit
-            if reply:
-                for line in reply.split('\n'):
-                    # Validate the message
-                    try:
-                        msg = EbusdMessage(line)
-                        result.append(msg.name)
-                    except ValueError:
-                        self.logger.error('Unsupported ebusd parameter %s',
-                                          line)
-                        continue
-        return result
+def scan_devices():
+    logger.info('Scanning devices...')
+    result = []
+    reply = __scan(result=True)
+    if reply:
+        for line in reply.split('\n'):
+            logger.debug('Device %s' % line)
+            try:
+                result.append(EbusdScanResult(line))
+            except ValueError as e:
+                logger.error('Skipping scan result %s: %s' % (line, str(e)))
+    logger.info('Found %d device(s)', len(result))
+    return result
 
-    def read_parameter(self, name, dest_addr=None):
-        result = None
-        with self.lock:
-            args = ''
-            if dest_addr:
-                args += '-d ' + dest_addr + ' '
-            args += name
-            result = self.__read('read -f ' + args)
-        return result
 
-    def read_exp_parameter(self, descriptor, dest_addr):
-        args = '-def \"' + descriptor + '\"'
-        return self.read_parameter(args, dest_addr)
+def __scan(result=True, full=False, address=''):
+    cmd = 'scan '
+    if result:
+        cmd += 'result'
+    elif full:
+        cmd += 'full'
+    elif address:
+        cmd += address
+    else:
+        raise ValueError('Invalid combination of parameters')
+    return __read(cmd)
 
-    def __recvall(self):
-        # All socket access is serialized with the lock, so we can assume
-        # that we can to read all the data in the receive buffer
-        result = b''
-        while True:
-            # Read as many bytes as we can
-            chunk = self.sock.recv(4096)
-            if not chunk:
-                # Disconnected - reconnect
-                self.sock = None
-                raise OSError('Disconnected from ebusd')
-            result += chunk
-            # ebusd response ends with a single empty line.
-            if chunk.endswith(b'\n\n'):
-                break
-        return result
 
-    def __read(self, command):
-        try:
-            command += '\n'
-            for i in range(EBUSD_IO_RETRY_COUNT):
-                self.sock.sendall(command.encode())
-                result = self.__recvall().decode('utf-8').strip()
-                # FIXME: sometimes ebusd returns 'Element not found' error
-                # even for known messages, so try harder
-                if result != EbusdErr.RESULT_ERR_NOTFOUND.value:
-                    break
-            # Check if reply is an error message
-            if EbusdErr.has_value(result):
-                raise ValueError(result)
-        except socket.error:
+def get_supported_messages(circuit=None):
+    logger.info('Querying supported messages...')
+    result = []
+    reply = __read('find -F type,name')
+    if circuit:
+        reply += ' -c ' + circuit
+    if reply:
+        for line in reply.split('\n'):
+            # Validate the message
+            try:
+                msg = EbusdMessage(line)
+                result.append(msg.name)
+            except ValueError:
+                logger.error('Unsupported ebusd parameter %s', line)
+                continue
+    return result
+
+
+def read_parameter(name, dest_addr=None):
+    result = None
+    args = ''
+    if dest_addr:
+        args += '-d ' + dest_addr + ' '
+    args += name
+    result = __read('read -f ' + args)
+    return result
+
+
+def read_exp_parameter(descriptor, dest_addr):
+    args = '-def \"' + descriptor + '\"'
+    return read_parameter(args, dest_addr)
+
+
+def __recvall():
+    global sock
+
+    # All socket access is serialized with the lock, so we can assume
+    # that we can to read all the data in the receive buffer.
+    result = b''
+    while True:
+        # Read as many bytes as we can
+        chunk = sock.recv(4096)
+        if not chunk:
             # Disconnected - reconnect
-            self.sock = None
+            sock = None
             raise OSError('Disconnected from ebusd')
-        return result
+        result += chunk
+        # ebusd response ends with a single empty line.
+        if chunk.endswith(b'\n\n'):
+            break
+    return result
+
+
+def __read(command, retry=3):
+    global sock
+
+    try:
+        command += '\n'
+        for i in range(retry):
+            sock.sendall(command.encode())
+            result = __recvall().decode('utf-8').strip()
+            # FIXME: sometimes ebusd returns 'Element not found' error
+            # even for known messages, so try harder.
+            if result != EbusdErr.RESULT_ERR_NOTFOUND.value:
+                break
+        # Check if reply is an error message.
+        if EbusdErr.has_value(result):
+            raise ValueError(result)
+    except OSError:
+        # Disconnected - reconnect
+        sock = None
+        raise OSError('Disconnected from ebusd')
+    return result

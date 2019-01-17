@@ -1,24 +1,23 @@
 import logging
-# FIXME: there should be some more elegant way to setup the logger globally
-logging.basicConfig(level=logging.DEBUG)
-
 import time
 
 import config
-import ebus_client
+import ebus
 import version
 
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger()
+logging.basicConfig(level=logging.DEBUG)
+
 
 def main():
-    ebus = None
+    ebus_devs = None
 
     try:
-        log.info('This is %s v%s' % (version.PRODUCT, version.VERSION))
+        logger.info('This is %s v%s' % (version.PRODUCT, version.VERSION))
 
-        ebus = ebus_client.EbusClient()
-        ebus.start()
+        ebus_devs = ebus.Ebus()
+        ebus_devs.start()
 
         if config.options['daemonize']:
             pass
@@ -26,14 +25,14 @@ def main():
             while True:
                 time.sleep(1)
     finally:
-        if ebus:
+        if ebus_devs:
             try:
-                ebus.stop()
-                ebus.join()
+                ebus_devs.stop()
+                ebus_devs.join()
             except RuntimeError:
                 pass
-            del ebus
-        log.info('Done')
+            del ebus_devs
+        logger.info('Done')
 
 
 if __name__ == '__main__':

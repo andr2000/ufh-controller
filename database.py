@@ -5,7 +5,7 @@ import time
 
 import config
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 db_file = ''
 
@@ -30,8 +30,8 @@ def parse_frac(val, power):
 
 
 def create(db_file, schema_file):
-    log.info('Creating database at %s using schema %s' %
-             (db_file, schema_file))
+    logger.info('Creating database at %s using schema %s' %
+                (db_file, schema_file))
     try:
         fd = open(schema_file, 'r')
         script = fd.read()
@@ -39,7 +39,7 @@ def create(db_file, schema_file):
         cur = db.cursor()
         cur.executescript(script)
     except OSError as e:
-        log.error(str(e))
+        logger.error(str(e))
 
 
 def store_boiler(values):
@@ -70,15 +70,15 @@ def store_boiler(values):
             con.execute(SQL, row)
             con.commit()
     except sqlite3.IntegrityError:
-        log.error('Could not insert into boiler')
+        logger.error('Could not insert into boiler')
     except ValueError as e:
-        log.error(str(e))
+        logger.error(str(e))
 
 
 def __init_database():
     global db_file
 
-    log.info('Openning the database')
+    logger.info('Openning the database')
     db_file = expand_path(config.options['db_database_file'])
     if not os.path.isfile(db_file):
         schema_file = expand_path(config.options['db_schema_file'])
