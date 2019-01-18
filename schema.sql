@@ -14,3 +14,4 @@ CREATE TABLE `boiler` (
 	`set_mode_r`	TEXT,
 	PRIMARY KEY(datetime_unix)
 ) WITHOUT ROWID;
+CREATE TABLE weather (datetime_unix INTEGER PRIMARY KEY, t_sinoptik_10 INTEGER);
