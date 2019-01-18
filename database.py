@@ -74,6 +74,21 @@ def store_boiler(values):
         logger.error(str(e))
 
 
+def store_weather(values):
+    try:
+        row = []
+        row.append(int(time.time()))
+        row.append(parse_frac(values['T_sinoptik'], 1))
+        SQL = 'INSERT INTO weather (datetime_unix,t_sinoptik_10) VALUES (?,?)'
+        with sqlite3.connect(db_file) as con:
+            con.execute(SQL, row)
+            con.commit()
+    except sqlite3.IntegrityError:
+        logger.error('Could not insert into weather')
+    except ValueError as e:
+        logger.error(str(e))
+
+
 def __init_database():
     global db_file
 

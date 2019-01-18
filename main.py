@@ -19,6 +19,8 @@ import ebus
 import version
 import weather
 
+# Once half an hour.
+WEATHER_POLL_TO_SEC = 30 * 60
 
 def main():
     ebus_devs = None
@@ -29,11 +31,16 @@ def main():
         ebus_devs = ebus.Ebus()
         ebus_devs.start()
 
+        weather_till_run = 0
         if config.options['daemonize']:
             logger.info('Running as daemon')
             pass
         else:
             while True:
+                weather_till_run += 1
+                if weather_till_run > WEATHER_POLL_TO_SEC:
+                    weather_till_run = 0
+                    weather.process()
                 time.sleep(1)
     finally:
         if ebus_devs:

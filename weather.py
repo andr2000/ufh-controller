@@ -1,10 +1,15 @@
+import database
 import logging
 import http.client
 import re
+import time
 import urllib.parse
 
 
 logger = logging.getLogger(__name__)
+
+temperature = {}
+timestamp = None
 
 
 def get_sinoptik():
@@ -87,3 +92,24 @@ def get_sinoptik():
 
     return result
 
+
+def process():
+    global temperature
+    global timestamp
+
+    temperature = get_sinoptik()
+    timestamp = time.time()
+
+    logger.debug(temperature)
+
+    # store to the database
+    try:
+        values = {
+            'T_sinoptik': temperature['t_now'][0]
+        }
+        database.store_weather(values)
+
+    except (ValueError, IndexError) as e:
+        logger.error(str(e))
+
+process()
