@@ -3,7 +3,18 @@ logger = logging.getLogger()
 import time
 
 import config
-logging.basicConfig(level=config.options['loglevel'])
+LOGGER_FMT_TIMESTAMP = '%m-%d-%y %H:%M:%S'
+LOGGER_FMT = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
+if config.options['logfile']:
+    logging.basicConfig(level=config.options['loglevel'],
+                        datefmt=LOGGER_FMT_TIMESTAMP,
+                        format=LOGGER_FMT,
+                        filename=config.options['logfile'])
+else:
+    logging.basicConfig(level=config.options['loglevel'],
+                        datefmt=LOGGER_FMT_TIMESTAMP,
+                        format=LOGGER_FMT)
+
 import ebus
 import version
 import weather

@@ -12,9 +12,10 @@ def expand_path(path):
     return os.path.normpath(os.path.expandvars(os.path.expanduser(path)))
 
 
+CFG_APP_NAME = 'ufh-controller'
+
 CFG_SECTION_CORE = 'core'
 CFG_OPTION_CORE_LOGLEVEL = 'loglevel'
-CFG_OPTION_CORE_DAEMONIZE = 'daemonize'
 
 CFG_SECTION_EBUSD = 'ebusd'
 CFG_OPTION_EBUSD_ADDRESS = 'address'
@@ -39,16 +40,13 @@ def parse_config(cfg_file):
     # Read 'core' section
     loglevel = config.get(CFG_SECTION_CORE, CFG_OPTION_CORE_LOGLEVEL,
                           fallback='info')
-    if loglevel:
-        d = {
-            'error' : logging.ERROR,
-            'warning' : logging.WARN,
-            'info' : logging.INFO,
-            'debug' : logging.DEBUG
-        }
-        options['loglevel'] = d[str(loglevel).lower()]
-    options['daemonize'] = config.getboolean(CFG_SECTION_CORE,
-            CFG_OPTION_CORE_DAEMONIZE, fallback=True)
+    d = {
+        'error' : logging.ERROR,
+        'warning' : logging.WARN,
+        'info' : logging.INFO,
+        'debug' : logging.DEBUG
+    }
+    options['loglevel'] = d[str(loglevel).lower()]
 
     # Read 'ebusd' section
     options['ebusd_address'] = strip_quotes(config.get(CFG_SECTION_EBUSD,
@@ -63,7 +61,7 @@ def parse_config(cfg_file):
                                                           CFG_OPTION_DATABASE_FILE,
                                                           fallback='${PWD}/ufh-controller.db'))
     options['db_schema_file'] = strip_quotes(config.get(CFG_SECTION_DATABASE,
-                                                        CFG_OPTION_DATABASE_FILE,
+                                                        CFG_OPTION_DATABASE_SCHEMA_FILE,
                                                         fallback='${PWD}/schema.sql'))
 
 
@@ -73,10 +71,21 @@ def __init_config():
     logger.info('Reading configuration')
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', required=False,
-                        help="Use configuration file for tuning")
+                        help='Use configuration file for tuning')
+    parser.add_argument('-p', '--pid-file', default='/var/run/' +
+                                                    CFG_APP_NAME + '.pid')
+    parser.add_argument('-d', '--daemonize', action='store_true',
+                        default=False, help='Run as a daemon')
+    parser.add_argument('-l', '--log-file', default='')
     args = parser.parse_args()
     if args.config:
         parse_config(args.config)
+    options['logfile'] = args.log_file
+
+    options['daemonize'] = False
+    if args.daemonize:
+        options['daemonize'] = True
+    options['pid_file'] = args.pid_file
 
 
 __init_config()
