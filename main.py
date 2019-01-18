@@ -6,6 +6,7 @@ import config
 logging.basicConfig(level=config.options['loglevel'])
 import ebus
 import version
+import weather
 
 
 def main():
