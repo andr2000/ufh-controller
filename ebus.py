@@ -9,7 +9,7 @@ from ebusd_types import (EbusdDeviceId)
 
 
 EBUS_RECONNECT_TO_SEC = 5
-EBUS_POLL_TO_SEC = 1
+EBUS_POLL_TO_SEC = 600
 
 class EbusClientState(Enum):
     initializing = 'initializing'
