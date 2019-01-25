@@ -25,6 +25,10 @@ CFG_SECTION_DATABASE = 'database'
 CFG_OPTION_DATABASE_FILE = 'db_file'
 CFG_OPTION_DATABASE_SCHEMA_FILE = 'schema_file'
 
+CFG_SECTION_TELEGRAM = 'telegram'
+CFG_OPTION_TELEGRAM_BOT_TOKEN = 'bot_token'
+CFG_OPTION_TELEGRAM_CHAT_ID = 'chat_id'
+
 def strip_quotes(val):
     return val.strip('"').strip("'")
 
@@ -64,6 +68,12 @@ def parse_config(cfg_file):
                                                         CFG_OPTION_DATABASE_SCHEMA_FILE,
                                                         fallback='${PWD}/schema.sql'))
 
+    options['telegram_bot_token'] = strip_quotes(config.get(CFG_SECTION_TELEGRAM,
+                                                        CFG_OPTION_TELEGRAM_BOT_TOKEN,
+                                                        fallback=''))
+    options['telegram_chat_id'] = strip_quotes(config.get(CFG_SECTION_TELEGRAM,
+                                                          CFG_OPTION_TELEGRAM_CHAT_ID,
+                                                          fallback=''))
 
 def __init_config():
     global options
