@@ -2,6 +2,7 @@ import database
 import logging
 import http.client
 import re
+import telegram
 import time
 import urllib.parse
 
@@ -108,7 +109,7 @@ def process():
             'T_sinoptik': temperature['t_now'][0]
         }
         database.store_weather(values)
-
+        telegram.send_message('Toutside ' + temperature['t_now'][0])
     except (ValueError, IndexError) as e:
         logger.error(str(e))
 

@@ -1,6 +1,7 @@
 import database
 import datetime
 import logging
+import telegram
 
 from ebus_device import EbusDevice
 from table_logger import TableLogger
@@ -94,5 +95,8 @@ class EbusDeviceBAI(EbusDevice):
                 'Status02': status02,
                 'SetModeR': set_mode_r}
             database.store_boiler(values)
+
+            telegram.send_message('Flow %s Return %s Power, kW %.3f' %
+                                  (temp_flow, temp_return, power_kw))
         except ValueError as e:
             self.logger.error(str(e))

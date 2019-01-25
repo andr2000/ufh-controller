@@ -16,6 +16,7 @@ else:
                         format=LOGGER_FMT)
 
 import ebus
+import telegram
 import version
 import weather
 
@@ -27,6 +28,8 @@ def main():
 
     try:
         logger.info('This is %s v%s' % (version.PRODUCT, version.VERSION))
+        telegram.send_message('Starting %s v%s' % (version.PRODUCT,
+                                                   version.VERSION))
 
         ebus_devs = ebus.Ebus()
         ebus_devs.start()
@@ -51,6 +54,7 @@ def main():
                 pass
             del ebus_devs
         logger.info('Done')
+        telegram.send_message('<<<<<<Exiting>>>>>>')
 
 
 if __name__ == '__main__':
