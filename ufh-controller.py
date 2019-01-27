@@ -1,21 +1,29 @@
 #!/usr/bin/env python3
 
 import logging
+import logging.handlers
 logger = logging.getLogger()
 import time
 
 import config
-LOGGER_FMT_TIMESTAMP = '%m-%d-%y %H:%M:%S'
-LOGGER_FMT = '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
+
+log_formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+logger.setLevel(config.options['loglevel'])
+
+if config.options['foreground']:
+    log_console_handler = logging.StreamHandler()
+    log_console_handler.setFormatter(log_formatter)
+    logger.addHandler(log_console_handler)
+
 if config.options['logfile']:
-    logging.basicConfig(level=config.options['loglevel'],
-                        datefmt=LOGGER_FMT_TIMESTAMP,
-                        format=LOGGER_FMT,
-                        filename=config.options['logfile'])
-else:
-    logging.basicConfig(level=config.options['loglevel'],
-                        datefmt=LOGGER_FMT_TIMESTAMP,
-                        format=LOGGER_FMT)
+    log_file_handler = logging.handlers.RotatingFileHandler(
+        config.options['logfile'],
+        maxBytes=(1024 * 1024),
+        backupCount=7
+    )
+    log_file_handler.setFormatter(log_formatter)
+    logger.addHandler(log_file_handler)
+
 
 import ebus
 import telegram
