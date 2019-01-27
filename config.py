@@ -84,17 +84,19 @@ def __init_config():
                         help='Use configuration file for tuning')
     parser.add_argument('-p', '--pid-file', default='/var/run/' +
                                                     CFG_APP_NAME + '.pid')
-    parser.add_argument('-d', '--daemonize', action='store_true',
-                        default=False, help='Run as a daemon')
-    parser.add_argument('-l', '--log-file', default='')
+    parser.add_argument('-f', '--foreground', action='store_true',
+                        default=False, help='Run in foreground, do not '
+                                            'daemonize')
+    parser.add_argument('-l', '--log-file', default='/var/log/' +
+                                                    CFG_APP_NAME + '.log')
     args = parser.parse_args()
     if args.config:
         parse_config(args.config)
     options['logfile'] = args.log_file
 
-    options['daemonize'] = False
-    if args.daemonize:
-        options['daemonize'] = True
+    options['foreground'] = False
+    if args.foreground:
+        options['foreground'] = True
     options['pid_file'] = args.pid_file
 
 

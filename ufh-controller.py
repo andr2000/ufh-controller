@@ -40,7 +40,7 @@ def main():
 
         weather_till_run = 0
         telegram_till_run = 0
-        if config.options['daemonize']:
+        if not config.options['foreground']:
             logger.info('Running as daemon')
             pass
         else:
