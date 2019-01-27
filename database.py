@@ -39,6 +39,7 @@ def create(db_file, schema_file):
         cur.executescript(script)
     except OSError as e:
         logger.error(str(e))
+        raise
 
 
 def store_boiler(values):
