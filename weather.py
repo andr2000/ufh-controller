@@ -94,19 +94,55 @@ def get_sinoptik():
     return result
 
 
+def get_sinoptik_cur_hour_index(ts):
+    # Sinoptik's result also has hourly values and the corresponding
+    # time ranges as strings. Find the index which corresponds to the
+    # time given
+    if not temperature['forecast_time_range_hourly']:
+        return -1
+
+    try:
+        # Convert the timestamp to struct_time, so we can have hour and
+        # minutes
+        tm = time.localtime(ts)
+        tm_ranges = temperature['forecast_time_range_hourly']
+        idx = len(tm_ranges) - 1
+        for t in reversed(tm_ranges):
+            hour, minutes = t[0].split(':')
+            t = time.mktime((tm.tm_year, tm.tm_mon, tm.tm_mday,
+                             int(hour), int(minutes), 0, 0, 0, 0))
+            if (t <= timestamp):
+                break
+            idx -= 1
+    except (IndexError, ValueError):
+        return -1
+
+    return idx
+
+
 def process():
     global temperature
     global timestamp
 
     temperature = get_sinoptik()
+    if not temperature:
+        return
+
     timestamp = time.time()
 
     logger.debug(temperature)
 
+    hour_idx = get_sinoptik_cur_hour_index(timestamp)
     # store to the database
     try:
+        if hour_idx < 0:
+            t_feels_like = ''
+        else:
+            t_feels_like = temperature['forecast_feels_like_hourly'][hour_idx]
+
         values = {
-            'T_sinoptik': temperature['t_now'][0]
+            'T_sinoptik': temperature['t_now'][0],
+            'T_sinoptik_feels_like': t_feels_like[0]
         }
         database.store_weather(values)
         telegram.send_message('Toutside ' + temperature['t_now'][0])

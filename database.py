@@ -86,7 +86,9 @@ def store_weather(values):
         row = []
         row.append(int(time.time()))
         row.append(parse_frac(values['T_sinoptik'], 1))
-        SQL = 'INSERT INTO weather (datetime_unix,t_sinoptik_10) VALUES (?,?)'
+        row.append(parse_frac(values['T_sinoptik_feels_like'], 1))
+        SQL = 'INSERT INTO weather (datetime_unix,t_sinoptik_10,'\
+              't_sinoptik_feels_like_10) VALUES (?,?,?)'
         with sqlite3.connect(db_file) as con:
             con.execute(SQL, row)
             con.commit()
