@@ -32,6 +32,12 @@ def parse_frac(val, power):
 def create(db_file, schema_file):
     logger.info('Creating database at %s using schema %s' % (db_file, schema_file))
     try:
+        logger.debug(os.path.dirname(db_file))
+        os.makedirs(os.path.dirname(db_file))
+    except OSError as e:
+        if e.errno != os.errno.EEXIST:
+            raise
+    try:
         fd = open(schema_file, 'r')
         script = fd.read()
         db = sqlite3.connect(db_file)
