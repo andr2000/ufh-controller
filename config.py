@@ -94,10 +94,11 @@ def __init_config():
         parse_config(args.config)
     options['logfile'] = args.log_file
 
+    options['pid_file'] = args.pid_file
     options['foreground'] = False
     if args.foreground:
         options['foreground'] = True
-    options['pid_file'] = args.pid_file
+        options['pid_file'] = '/tmp/' + CFG_APP_NAME + '.pid'
 
 
 __init_config()
