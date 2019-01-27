@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 
-import logging
+from daemonize import Daemonize
 import logging.handlers
 logger = logging.getLogger()
+import os
+import sys
 import time
-
 import config
+
+
+daemon_keep_fds = []
 
 log_formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
 logger.setLevel(config.options['loglevel'])
@@ -23,6 +27,7 @@ if config.options['logfile']:
     )
     log_file_handler.setFormatter(log_formatter)
     logger.addHandler(log_file_handler)
+    daemon_keep_fds.append(log_file_handler.stream.fileno())
 
 
 import ebus
@@ -48,20 +53,16 @@ def main():
 
         weather_till_run = 0
         telegram_till_run = 0
-        if not config.options['foreground']:
-            logger.info('Running as daemon')
-            pass
-        else:
-            while True:
-                weather_till_run += 1
-                if weather_till_run > WEATHER_POLL_TO_SEC:
-                    weather_till_run = 0
-                    weather.process()
-                telegram_till_run += 1
-                if telegram_till_run > TELEGRAM_POLL_TO_SEC:
-                    telegram_till_run = 0
-                    telegram.process()
-                time.sleep(1)
+        while True:
+            weather_till_run += 1
+            if weather_till_run > WEATHER_POLL_TO_SEC:
+                weather_till_run = 0
+                weather.process()
+            telegram_till_run += 1
+            if telegram_till_run > TELEGRAM_POLL_TO_SEC:
+                telegram_till_run = 0
+                telegram.process()
+            time.sleep(1)
     finally:
         if ebus_devs:
             try:
@@ -74,5 +75,8 @@ def main():
         telegram.send_message_now('<<<<<<Exiting>>>>>>')
 
 
-if __name__ == '__main__':
-    main()
+daemon = Daemonize(app=config.CFG_APP_NAME, pid=config.options['pid_file'],
+                   action=main, verbose=True, logger=logger,
+                   foreground=config.options['foreground'],
+                   chdir=sys.path[0], keep_fds=daemon_keep_fds)
+daemon.start()
