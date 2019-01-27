@@ -66,7 +66,7 @@ def parse_config(cfg_file):
                                                           fallback='${PWD}/ufh-controller.db'))
     options['db_schema_file'] = strip_quotes(config.get(CFG_SECTION_DATABASE,
                                                         CFG_OPTION_DATABASE_SCHEMA_FILE,
-                                                        fallback='${PWD}/schema.sql'))
+                                                        fallback='${PWD}/etc/ufh-controller/schema.sql'))
 
     options['telegram_bot_token'] = strip_quotes(config.get(CFG_SECTION_TELEGRAM,
                                                         CFG_OPTION_TELEGRAM_BOT_TOKEN,

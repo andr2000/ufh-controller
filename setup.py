@@ -8,5 +8,13 @@ setup(
     license='GPLv2',
     author='Oleksandr Andrushchenko',
     author_email='andr2000@gmail.com',
-    description='Customized underfloor heating controller'
+    description='Customized underfloor heating controller',
+    data_files=[
+        ('/etc/default', ['etc/default/ufh-controller']),
+        ('/etc/init.d', ['etc/init.d/ufh-controller']),
+        ('/etc/ufh-controller', [
+            'etc/ufh-controller/ufh-controller.conf',
+            'etc/ufh-controller/schema.sql'
+        ]),
+    ]
 )
