@@ -34,8 +34,8 @@ def get_sinoptik():
 
     result = {}
     # Parse current temperature.
-    result['t_now'] = re.findall(pattern, buffer)
     pattern = re.compile(r'<p class="today-temp">.*?([+-]?\d+).*</p>')
+    result['t_now'] = re.findall(pattern, buffer)[0]
 
     # Read temperatures forecast per hour.
     vals = []
@@ -45,7 +45,7 @@ def get_sinoptik():
         res_split = res[0].split('> <')
         pattern = re.compile(r'>.*?([+-]?\d+).*<')
         for t in res_split:
-            vals.append(re.findall(pattern, t))
+            vals.append(re.findall(pattern, t)[0])
     result['forecast_hourly'] = vals
 
     # Read feels like temperatures per hour.
@@ -56,7 +56,7 @@ def get_sinoptik():
         res_split = res[0].split('> <')
         pattern = re.compile(r'>.*?([+-]?\d+).*<')
         for t in res_split:
-            vals.append(re.findall(pattern, t))
+            vals.append(re.findall(pattern, t)[0])
     result['forecast_feels_like_hourly'] = vals
 
     # Read hour stamps for hour's temperatures.
@@ -68,7 +68,7 @@ def get_sinoptik():
         pattern = re.compile(r'>(.*)<')
         for t in res_split:
             # Remove all whitespace and parse
-            vals.append(re.findall(pattern, ''.join(t.split())))
+            vals.append(re.findall(pattern, ''.join(t.split()))[0])
     result['forecast_time_range_hourly'] = vals
 
     # Read day forecast: min temperature by day.
@@ -78,7 +78,7 @@ def get_sinoptik():
     if res:
         pattern = re.compile('<span>.*?([+-]?\d+).*</span>')
         for t in res:
-            vals.append(re.findall(pattern, t))
+            vals.append(re.findall(pattern, t)[0])
     result['forecast_low_7day'] = vals
 
     # Read day forecast: max temperature by day.
@@ -88,7 +88,8 @@ def get_sinoptik():
     if res:
         pattern = re.compile(r'<span>.*?([+-]?\d+).*</span>')
         for t in res:
-            vals.append(re.findall(pattern, t))
+            v= re.findall(pattern, t)[0]
+            vals.append(v)
     result['forecast_high_7day'] = vals
 
     return result
@@ -108,7 +109,7 @@ def get_sinoptik_cur_hour_index(ts):
         tm_ranges = temperature['forecast_time_range_hourly']
         idx = len(tm_ranges) - 1
         for t in reversed(tm_ranges):
-            hour, minutes = t[0].split(':')
+            hour, minutes = t.split(':')
             t = time.mktime((tm.tm_year, tm.tm_mon, tm.tm_mday,
                              int(hour), int(minutes), 0, 0, 0, 0))
             if (t <= timestamp):
@@ -124,7 +125,14 @@ def process():
     global temperature
     global timestamp
 
-    temperature = get_sinoptik()
+    temperature = {}
+    timestamp = None
+
+    try:
+        temperature = get_sinoptik()
+    except (IndexError, ValueError):
+        return
+
     if not temperature:
         return
 
@@ -141,11 +149,12 @@ def process():
             t_feels_like = temperature['forecast_feels_like_hourly'][hour_idx]
 
         values = {
-            'T_sinoptik': temperature['t_now'][0],
-            'T_sinoptik_feels_like': t_feels_like[0]
+            'T_sinoptik': temperature['t_now'],
+            'T_sinoptik_feels_like': t_feels_like
         }
         database.store_weather(values)
-        telegram.send_message('Toutside ' + temperature['t_now'][0])
+        telegram.send_message('Toutside ' + temperature['t_now'] +
+                              ' feels like ' + t_feels_like)
     except (ValueError, IndexError) as e:
         logger.error(str(e))
 
