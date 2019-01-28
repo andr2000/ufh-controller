@@ -34,8 +34,8 @@ def get_sinoptik():
 
     result = {}
     # Parse current temperature.
-    pattern = re.compile(r'<p class="today-temp">(.[+-]?\d+).*</p>')
     result['t_now'] = re.findall(pattern, buffer)
+    pattern = re.compile(r'<p class="today-temp">.*?([+-]?\d+).*</p>')
 
     # Read temperatures forecast per hour.
     vals = []
@@ -43,7 +43,7 @@ def get_sinoptik():
     res = re.findall(pattern, buffer)
     if res and len(res):
         res_split = res[0].split('> <')
-        pattern = re.compile(r'>(.[+-]?\d+).*<')
+        pattern = re.compile(r'>.*?([+-]?\d+).*<')
         for t in res_split:
             vals.append(re.findall(pattern, t))
     result['forecast_hourly'] = vals
@@ -54,7 +54,7 @@ def get_sinoptik():
     res = re.findall(pattern, buffer)
     if res and len(res):
         res_split = res[0].split('> <')
-        pattern = re.compile(r'>(.[+-]?\d+).*<')
+        pattern = re.compile(r'>.*?([+-]?\d+).*<')
         for t in res_split:
             vals.append(re.findall(pattern, t))
     result['forecast_feels_like_hourly'] = vals
@@ -76,7 +76,7 @@ def get_sinoptik():
     pattern = re.compile(r'<div class="min">(.+?)</div>')
     res = re.findall(pattern, buffer)
     if res:
-        pattern = re.compile(r'<span>(.[+-]?\d+).*</span>')
+        pattern = re.compile('<span>.*?([+-]?\d+).*</span>')
         for t in res:
             vals.append(re.findall(pattern, t))
     result['forecast_low_7day'] = vals
@@ -86,7 +86,7 @@ def get_sinoptik():
     pattern = re.compile(r'<div class="max">(.+?)</div>')
     res = re.findall(pattern, buffer)
     if res:
-        pattern = re.compile(r'<span>(.[+-]?\d+).*</span>')
+        pattern = re.compile(r'<span>.*?([+-]?\d+).*</span>')
         for t in res:
             vals.append(re.findall(pattern, t))
     result['forecast_high_7day'] = vals
