@@ -2,6 +2,7 @@ import database
 import logging
 import http.client
 import re
+import ssl
 import telegram
 import time
 import urllib.parse
@@ -28,7 +29,7 @@ def get_sinoptik():
                     resp.reason)
             return
         buffer = str(resp.read())
-    except http.client.HTTPException as e:
+    except (ssl.SSLError, http.client.HTTPException) as e:
         logger.error(str(e))
         return
 
