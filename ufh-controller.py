@@ -6,6 +6,7 @@ logger = logging.getLogger()
 import os
 import sys
 import time
+import traceback
 import config
 
 
@@ -63,6 +64,9 @@ def main():
                 telegram_till_run = 0
                 telegram.process()
             time.sleep(1)
+    except Exception as e:
+        tb_lines = traceback.format_exception(e.__class__, e, e.__traceback__)
+        telegram.send_message_now(''.join(tb_lines))
     finally:
         if ebus_devs:
             try:
