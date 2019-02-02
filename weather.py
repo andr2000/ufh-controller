@@ -29,7 +29,7 @@ def get_sinoptik():
                     resp.reason)
             return
         buffer = str(resp.read())
-    except (ssl.SSLError, http.client.HTTPException) as e:
+    except (ssl.SSLError, http.client.HTTPException, OSError) as e:
         logger.error(str(e))
         return
 
