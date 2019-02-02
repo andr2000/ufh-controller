@@ -1,4 +1,4 @@
 # /etc/default/ufh-controller:
 # Config file for ufh-controller service.
 
-UFH_ARGS="--config /etc/ufh-controller/ufh-controller.conf"
+UFH_ARGS="--log-file=/var/log/ufh-controller.log --config /etc/ufh-controller/ufh-controller.conf"
