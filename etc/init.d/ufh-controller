@@ -14,6 +14,9 @@ DAEMON_NAME=ufh-controller
 DAEMON_DIR=/usr/local/bin/$DAEMON_NAME
 DAEMON=$DAEMON_DIR/$DAEMON_NAME.py
 
+# Read configuration
+[ -r /etc/default/$DAEMON_NAME ] && . /etc/default/$DAEMON_NAME
+
 DAEMON_OPTS=${UFH_ARGS:-""}
 
 DAEMON_USER=root
