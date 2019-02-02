@@ -89,7 +89,7 @@ def __init_config():
                         default=False, help='Run in foreground, do not '
                                             'daemonize')
     parser.add_argument('-l', '--log-file', help='Log file')
-    args = parser.parse_args()
+    args, _ = parser.parse_known_args()
     if args.config:
         parse_config(args.config)
     options['logfile'] = args.log_file
