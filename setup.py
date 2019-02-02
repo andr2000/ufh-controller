@@ -3,7 +3,7 @@ from distutils.core import setup
 setup(
     name='ufh-controller',
     version='0.1',
-    packages=[''],
+    packages=['', 'table_logger'],
     url='https://github.com/andr2000/ufh-controller',
     license='GPLv2',
     author='Oleksandr Andrushchenko',
