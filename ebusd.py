@@ -83,7 +83,12 @@ def scan_devices():
     result = []
     reply = __scan(result=True)
     if reply:
+        # Check if reply is an error message.
+        if EbusdErr.has_value(reply):
+            return result
         for line in reply.split('\n'):
+            if 'done' in line:
+                return result
             logger.debug('Device %s' % line)
             try:
                 result.append(EbusdScanResult(line))
