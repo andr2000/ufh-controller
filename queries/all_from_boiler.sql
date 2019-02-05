@@ -5,7 +5,7 @@ SELECT
 	temp_flow_sensor as FlowSensor,
 	(temp_return_100/100.) as Return,
 	temp_return_sensor as ReturnSensor,
-	flame_state as Flame,
+	(flame_state = 'on' ) as Flame,
 	(power_hc_percent_100/100.) as PowPercent,
 	(power_hc_percent_100/100 * 20./100.) as PowerKW,
 	(water_pressure_1000/1000.) as WaterPressure,
