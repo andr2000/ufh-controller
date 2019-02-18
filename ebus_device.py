@@ -48,4 +48,4 @@ class EbusDevice():
         return res
 
     def process(self):
-        pass
+        return False

@@ -85,8 +85,17 @@ class Ebus(threading.Thread):
         return False
 
     def state_running(self):
+        global EBUS_POLL_TO_SEC
+        dec_poll_to = False
+
         for dev in self.devices:
-            dev.process()
+            if dev.process():
+                dec_poll_to = True
+
+        if dec_poll_to:
+            EBUS_POLL_TO_SEC = 30
+        else:
+            EBUS_POLL_TO_SEC = 600
         return True
 
     def run(self):
