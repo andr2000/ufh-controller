@@ -107,15 +107,14 @@ def get_sinoptik_cur_hour_index(ts):
         # Convert the timestamp to struct_time, so we can have hour and
         # minutes
         tm = time.localtime(ts)
+        # Minutes since day start
+        minutes_now = tm.tm_hour * 60 + tm.tm_min
         tm_ranges = temperature['forecast_time_range_hourly']
-        idx = len(tm_ranges) - 1
-        for t in reversed(tm_ranges):
+        for t in tm_ranges:
             hour, minutes = t.split(':')
-            t = time.mktime((tm.tm_year, tm.tm_mon, tm.tm_mday,
-                             int(hour), int(minutes), 0, 0, 0, 0))
-            if (t <= timestamp):
+            if minutes_now <= int(hour) * 60 + int(minutes):
                 break
-            idx -= 1
+        idx = tm_ranges.index(t)
     except (IndexError, ValueError):
         return -1
 
