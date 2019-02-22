@@ -101,8 +101,8 @@ class EbusDeviceBAI(EbusDevice):
                 'SetModeR': set_mode_r}
             database.store_boiler(values)
 
-            telegram.send_message('Flow %s Return %s Power, kW %.3f Flame %s' %
-                                  (temp_flow, temp_return, power_kw, flame))
+            telegram.send_message('Flow %s Return %s Power, kW %.3f Flame %s PumpPower %s' %
+                                  (temp_flow, temp_return, power_kw, flame, pump_power))
         except ValueError as e:
             self.logger.error(str(e))
 
