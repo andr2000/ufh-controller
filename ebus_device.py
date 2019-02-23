@@ -29,22 +29,29 @@ class EbusDevice():
         int(val)
 
     def read_0(self, msg):
-        res = ebusd.read_parameter(msg, self.scan_result.address).split(';')
+        res = ebusd.read_parameter(msg,
+                                   self.scan_result.circuit,
+                                   self.scan_result.address).split(
+            ';')
         return res[0]
 
     def read_0_status_at_idx(self, msg, status_idx):
-        res = ebusd.read_parameter(msg, self.scan_result.address).split(';')
+        res = ebusd.read_parameter(msg, self.scan_result.circuit,
+                                   self.scan_result.address).split(';')
         if status_idx >= len(res):
             raise ValueError()
         return res[0], res[status_idx]
 
 
     def read_raw(self, msg):
-        res = ebusd.read_parameter(msg, self.scan_result.address)
+        res = ebusd.read_parameter(msg, self.scan_result.circuit,
+                                   self.scan_result.address)
         return res
 
     def read_raw_experimental(self, msg):
-        res = ebusd.read_exp_parameter(msg, self.scan_result.address)
+        res = ebusd.read_exp_parameter(msg,
+                                       self.scan_result.circuit,
+                                       self.scan_result.address)
         return res
 
     def process(self):

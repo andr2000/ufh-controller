@@ -129,19 +129,19 @@ def get_supported_messages(circuit=None):
     return result
 
 
-def read_parameter(name, dest_addr=None):
+def read_parameter(name, circuit, dest_addr=None):
     result = None
     args = ''
     if dest_addr:
-        args += '-d ' + dest_addr + ' '
+        args += '-c ' + circuit + ' -d ' + dest_addr + ' '
     args += name
     result = __read('read -f ' + args)
     return result
 
 
-def read_exp_parameter(descriptor, dest_addr):
+def read_exp_parameter(descriptor, circuit, dest_addr):
     args = '-def \"' + descriptor + '\"'
-    return read_parameter(args, dest_addr)
+    return read_parameter(args, circuit, dest_addr)
 
 
 def __recvall():
