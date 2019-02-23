@@ -50,9 +50,8 @@ class EbusDevice():
         return res
 
     def read_raw_experimental(self, msg):
-        res = ebusd.read_exp_parameter(msg,
-                                       self.scan_result.circuit,
-                                       self.scan_result.address)
+        # Circuit is provided in the command itself
+        res = ebusd.read_exp_parameter(msg, '', self.scan_result.address)
         return res
 
     def process(self):

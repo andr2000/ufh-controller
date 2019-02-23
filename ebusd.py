@@ -129,11 +129,13 @@ def get_supported_messages(circuit=None):
     return result
 
 
-def read_parameter(name, circuit, dest_addr=None):
+def read_parameter(name, circuit=None, dest_addr=None):
     result = None
     args = ''
+    if circuit:
+        args += '-c ' + circuit + ' '
     if dest_addr:
-        args += '-c ' + circuit + ' -d ' + dest_addr + ' '
+        args += ' -d ' + dest_addr + ' '
     args += name
     result = __read('read -f ' + args)
     return result
