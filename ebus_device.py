@@ -9,12 +9,13 @@ class EbusDevice():
         self.logger = logging.getLogger(__name__)
 
         self.logger.info(
-            'Creating new BAI device: make %s SW %s HW %s product %s' %
-            (scan_result.make, scan_result.sw, scan_result.hw,
-             scan_result.prod))
+            'Creating new %s device: make %s SW %s HW %s product %s' %
+            (scan_result.circuit, scan_result.make, scan_result.sw,
+             scan_result.hw, scan_result.prod))
         self.scan_result = scan_result
-        telegram.send_message('BAI device: make %s SW %s HW %s product %s' %
-                              (scan_result.make, scan_result.sw, scan_result.hw,
+        telegram.send_message('%s device: make %s SW %s HW %s product %s' %
+                              (scan_result.circuit, scan_result.make,
+                               scan_result.sw, scan_result.hw,
                                scan_result.prod))
 
     def __del__(self):

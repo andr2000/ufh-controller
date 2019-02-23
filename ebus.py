@@ -4,12 +4,14 @@ import time
 from enum import Enum
 
 import ebus_device_bai
+import ebus_device_vrc700f
 import ebusd
 from ebusd_types import (EbusdDeviceId)
 
 
 EBUS_RECONNECT_TO_SEC = 5
 EBUS_POLL_TO_SEC = 600
+
 
 class EbusClientState(Enum):
     initializing = 'initializing'
@@ -75,6 +77,9 @@ class Ebus(threading.Thread):
         for scan_result in scan_results:
             if scan_result.id == EbusdDeviceId.bai:
                 self.devices.append(ebus_device_bai.EbusDeviceBAI(scan_result))
+            elif scan_result.id == EbusdDeviceId.b7v:
+                self.devices.append(ebus_device_vrc700f.EbusDeviceVRC700F(
+                    scan_result))
             else:
                 self.logger.error('Unsupported device %s' % scan_result.id)
         if self.devices:

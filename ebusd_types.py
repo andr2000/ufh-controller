@@ -3,6 +3,7 @@ from enum import Enum
 
 class EbusdDeviceId(Enum):
     bai = "BAI00"
+    b7v = "B7V00"
 
 
 class EbusdCircuit(Enum):
@@ -45,6 +46,8 @@ class EbusdScanResult(object):
         # Set proper circuit name
         if self.id == EbusdDeviceId.bai:
             self.circuit = 'bai'
+        elif self.id == EbusdDeviceId.b7v:
+                self.circuit = 'b7v'
         else:
             self.circuit = ''
         self.sw = vals[3]
