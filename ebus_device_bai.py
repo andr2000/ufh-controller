@@ -46,7 +46,6 @@ class EbusDeviceBAI(EbusDevice):
     def process(self):
         super().process()
 
-        dec_poll_to = False
         try:
             temp_flow, temp_flow_status = self.read_0_status_at_idx(
                 'FlowTemp', 1)
@@ -64,10 +63,6 @@ class EbusDeviceBAI(EbusDevice):
             power = self.read_0('ModulationTempDesired')
             self.float_or_die(power)
             power_kw = self.power_max_hc_kw * float(power) / 100.0
-
-            # If we have power more than normal then decrease poll time-out
-            if power_kw > 4.0:
-                dec_poll_to = True
 
             water_pressure = self.read_0('WaterPressure')
             self.float_or_die(water_pressure)
@@ -105,5 +100,3 @@ class EbusDeviceBAI(EbusDevice):
                                   (temp_flow, temp_return, power_kw, flame, pump_power))
         except ValueError as e:
             self.logger.error(str(e))
-
-        return dec_poll_to
