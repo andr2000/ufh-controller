@@ -9,6 +9,7 @@ telegram_url = 'api.telegram.org'
 bot_token = config.options['telegram_bot_token']
 chat_id = config.options['telegram_chat_id']
 msg_queue = deque()
+msg_current = ''
 
 # To get chat_id:
 # 1. https://api.telegram.org/bot<yourtoken>/getUpdates
@@ -25,9 +26,10 @@ def send_message_now(msg):
         conn.request('GET', ' /' + 'bot' + bot_token +
                      '/sendMessage?chat_id=' + chat_id + '&text=' +
                      urllib.parse.quote_plus(msg))
-        # Do not check the response - we don't care if we fail
     except Exception:
-        pass
+        # If we fail then add to the queue - this might be a short(?)
+        # temporary brownout
+        msg_queue.appendleft(msg + '\n')
 
 
 def send_message(msg):
@@ -36,24 +38,34 @@ def send_message(msg):
     if not bot_token or not chat_id:
         return
 
-    msg_queue.appendleft(msg)
+    msg_queue.appendleft(msg + '\n')
 
 
 def process():
+    global msg_current
+
     if not bot_token or not chat_id:
         return
 
-    if not len(msg_queue):
+    len_msg_current = len(msg_current)
+    if not len(msg_queue) and not len_msg_current:
         return
+
+    # FIXME: Telegram supports messages up to 4KiB, so drop the oldest first
+    while len(msg_queue) + len_msg_current > 4 * 1024:
+        msg_queue.pop()
 
     try:
         conn = http.client.HTTPSConnection(telegram_url, 443, timeout=5)
-        msg = ''
+        # Take what we have for retry...
+        msg = msg_current
+        # ...and append any new messages
         while len(msg_queue):
-            msg += msg_queue.pop() + '\n'
+            msg += msg_queue.pop()
         conn.request('GET', ' /' + 'bot' + bot_token +
                      '/sendMessage?chat_id=' + chat_id + '&text=' +
                      urllib.parse.quote_plus(msg))
-        # Do not check the response - we don't care if we fail
+        msg_current = ''
     except Exception:
-        pass
+        # Save for retry
+        msg_current += msg
