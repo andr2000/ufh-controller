@@ -1,4 +1,5 @@
 import logging
+import telegram
 import threading
 import time
 from enum import Enum
@@ -12,6 +13,11 @@ from ebusd_types import (EbusdDeviceId)
 EBUS_RECONNECT_TO_SEC = 5
 EBUS_POLL_TO_SEC = 600
 
+
+# This holds the number of devices found during the last scan.
+# Some of the devices are detected late, so we need to re-scan
+# periodically to catch those.
+num_scanned_devices = 0
 
 class EbusClientState(Enum):
     initializing = 'initializing'
@@ -69,6 +75,8 @@ class Ebus(threading.Thread):
         return False
 
     def state_scanning(self):
+        global num_scanned_devices
+
         scan_results = ebusd.scan_devices()
         if not scan_results:
             self.logger.warning('No devices found, continue scanning')
@@ -87,9 +95,20 @@ class Ebus(threading.Thread):
         else:
             self.logger.warning('No supported devices found, continue scanning')
             return True
+        num_scanned_devices = len(scan_results)
         return False
 
     def state_running(self):
+        # Check if new devices are here
+        scan_results = ebusd.scan_devices()
+        if scan_results and (num_scanned_devices != len(scan_results)):
+            # Device number has changed - re-scan
+            self.set_state(EbusClientState.initializing)
+            telegram.send_message('Number of eBus devices changed from %d to %d.'
+                                  ' Re-initializing now...' %
+                                  (num_scanned_devices, len(scan_results)))
+
+
         for dev in self.devices:
             dev.process()
         return True
