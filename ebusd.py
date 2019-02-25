@@ -78,8 +78,9 @@ def disconnect():
     sock = None
 
 
-def scan_devices():
-    logger.info('Scanning devices...')
+def scan_devices(silent=False):
+    if not silent:
+        logger.info('Scanning devices...')
     result = []
     reply = __scan(result=True)
     if reply:
@@ -94,7 +95,8 @@ def scan_devices():
                 result.append(EbusdScanResult(line))
             except ValueError as e:
                 logger.error('Skipping scan result %s: %s' % (line, str(e)))
-    logger.info('Found %d device(s)', len(result))
+    if not silent:
+        logger.info('Found %d device(s)', len(result))
     return result
 
 

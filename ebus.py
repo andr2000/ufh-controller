@@ -100,7 +100,7 @@ class Ebus(threading.Thread):
 
     def state_running(self):
         # Check if new devices are here
-        scan_results = ebusd.scan_devices()
+        scan_results = ebusd.scan_devices(silent=True)
         if scan_results and (num_scanned_devices != len(scan_results)):
             # Device number has changed - re-scan
             self.set_state(EbusClientState.initializing)
