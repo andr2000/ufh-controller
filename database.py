@@ -81,6 +81,34 @@ def store_boiler(values):
         logger.error(str(e))
 
 
+def store_vrc700f(values):
+    try:
+        row = []
+        row.append(int(time.time()))
+        row.append(parse_frac(values['FlowTempDesired'], 2))
+        row.append(parse_frac(values['RoomTempDesired'], 2))
+        row.append(parse_frac(values['RoomTemp'], 2))
+        row.append(parse_frac(values['DayTemp'], 2))
+        row.append(parse_frac(values['NightTemp'], 2))
+        row.append(parse_frac(values['OutTemp'], 2))
+        row.append(values['RecLvlHead'])
+        row.append(values['RecLvlOut'])
+        SQL = (
+            'INSERT INTO vrc700 (datetime_unix,'
+            'temp_flow_des_100,temp_room_des_100,temp_room_100,'
+            'temp_day_100,temp_night_100,temp_out_100,'
+            'rec_lvl_head,rec_lvl_out) '
+            'VALUES (?,?,?,?,?,?,?,?,?)'
+        )
+        with sqlite3.connect(db_file) as con:
+            con.execute(SQL, row)
+            con.commit()
+    except sqlite3.IntegrityError:
+        logger.error('Could not insert into vrc700')
+    except ValueError as e:
+        logger.error(str(e))
+
+
 def store_weather(values):
     try:
         row = []

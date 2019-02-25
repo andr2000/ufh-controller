@@ -61,6 +61,19 @@ class EbusDeviceVRC700F(EbusDevice):
                      float(temp_flow), float(temp_room_des), float(temp_room),
                      float(temp_day), float(temp_night), float(temp_outside))
 
+            # store to the database
+            values = {
+                'FlowTempDesired': temp_flow_desired,
+                'RoomTempDesired': temp_room_des,
+                'RoomTemp': temp_room,
+                'DayTemp': temp_day,
+                'NightTemp': temp_night,
+                'OutTemp': temp_outside,
+                'RecLvlHead': -1,
+                'RecLvlOut': -1
+            }
+            database.store_vrc700f(values)
+
             telegram.send_message('FlowTDes %s FlowT %s RoomTDes %s RoomT %s '
                                   'DayT %s NightT %s OutT %s' %
                                   (temp_flow_desired, temp_flow, temp_room_des,

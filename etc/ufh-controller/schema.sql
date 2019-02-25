@@ -20,3 +20,15 @@ CREATE TABLE `weather` (
     `t_sinoptik_feels_like_10` INTEGER,
 	PRIMARY KEY(datetime_unix)
 ) WITHOUT ROWID;
+CREATE TABLE "vrc700" (
+	`datetime_unix`	INTEGER NOT NULL UNIQUE,
+	`temp_flow_des_100`	INTEGER,
+	`temp_room_des_100`	INTEGER,
+	`temp_room_100`	INTEGER,
+	`temp_day_100`	INTEGER,
+	`temp_night_100`	INTEGER,
+	`temp_out_100`	INTEGER,
+	`rec_lvl_head`	INTEGER,
+	`rec_lvl_out`	INTEGER,
+	PRIMARY KEY(datetime_unix)
+);
