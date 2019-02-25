@@ -15,21 +15,19 @@ class EbusDeviceVRC700F(EbusDevice):
         super().__init__(scan_result)
 
         self.tbl = TableLogger(
-            columns='timestamp,FlowDes,Flow,RoomDes,RoomTemp,DayTemp,NightTemp,'
-                    'OutTemp',
+            columns='timestamp,FlowDes,RoomDes,Room,Day,Night,Out',
             formatters={
                 'timestamp': '{:%Y-%m-%d %H:%M:%S}'.format,
                 'FlowDes': '{:,.2f}'.format,
-                'Flow': '{:,.2f}'.format,
                 'RoomDes': '{:,.2f}'.format,
-                'RoomTemp': '{:,.2f}'.format,
-                'DayTemp': '{:,.2f}'.format,
-                'NightTemp': '{:,.2f}'.format,
-                'OutTemp': '{:,.2f}'.format
+                'Room': '{:,.2f}'.format,
+                'Day': '{:,.2f}'.format,
+                'Night': '{:,.2f}'.format,
+                'Out': '{:,.2f}'.format
             },
             colwidth={
-                'FlowDes': 6, 'Flow': 6, 'RoomDes': 6, 'RoomTemp': 6,
-                'DayTemp': 6, 'NightTemp': 6, 'OutTemp': 6
+                'FlowDes': 6, 'RoomDes': 6, 'Room': 6,
+                'Day': 6, 'Night': 6, 'Out': 6
             })
 
     def process(self):
@@ -38,9 +36,6 @@ class EbusDeviceVRC700F(EbusDevice):
         try:
             temp_flow_desired = self.read_0('Hc1ActualFlowTempDesired')
             self.float_or_die(temp_flow_desired)
-
-            temp_flow = self.read_0('Hc1FlowTemp')
-            self.float_or_die(temp_flow)
 
             temp_room_des = self.read_0('z1ActualRoomTempDesired')
             self.float_or_die(temp_room_des)
@@ -58,7 +53,7 @@ class EbusDeviceVRC700F(EbusDevice):
             self.float_or_die(temp_outside)
 
             self.tbl(datetime.datetime.now(), float(temp_flow_desired),
-                     float(temp_flow), float(temp_room_des), float(temp_room),
+                     float(temp_room_des), float(temp_room),
                      float(temp_day), float(temp_night), float(temp_outside))
 
             # store to the database
@@ -74,9 +69,9 @@ class EbusDeviceVRC700F(EbusDevice):
             }
             database.store_vrc700f(values)
 
-            telegram.send_message('FlowTDes %s FlowT %s RoomTDes %s RoomT %s '
-                                  'DayT %s NightT %s OutT %s' %
-                                  (temp_flow_desired, temp_flow, temp_room_des,
+            telegram.send_message('FlowDes %s RoomDes %s Room %s '
+                                  'Day %s Night %s Out %s' %
+                                  (temp_flow_desired, temp_room_des,
                                    temp_room, temp_day, temp_night,
                                    temp_outside))
         except ValueError as e:
