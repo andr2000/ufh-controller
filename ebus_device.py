@@ -56,3 +56,6 @@ class EbusDevice():
 
     def process(self):
         pass
+
+    def poll(self):
+        return False

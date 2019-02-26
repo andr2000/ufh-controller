@@ -30,6 +30,8 @@ class EbusDeviceVRC700F(EbusDevice):
                 'Day': 6, 'Night': 6, 'Out': 6
             })
 
+        self.temp_room_des = self.read_0('z1ActualRoomTempDesired')
+
     def process(self):
         super().process()
 
@@ -76,3 +78,15 @@ class EbusDeviceVRC700F(EbusDevice):
                                    temp_outside))
         except ValueError as e:
             self.logger.error(str(e))
+
+    def poll(self):
+        res = False
+        try:
+            # Trigger faster processing after desired room temp has changed
+            temp = self.read_0('z1ActualRoomTempDesired')
+            res = temp != self.temp_room_des
+            self.temp_room_des = temp
+        except ValueError as e:
+            pass
+
+        return res

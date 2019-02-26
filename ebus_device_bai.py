@@ -42,6 +42,7 @@ class EbusDeviceBAI(EbusDevice):
             })
 
         self.power_max_hc_kw = float(self.read_0('PartloadHcKW'))
+        self.flame = self.read_0('Flame')
 
     def process(self):
         super().process()
@@ -100,3 +101,14 @@ class EbusDeviceBAI(EbusDevice):
                                   (temp_flow, temp_return, power_kw, flame, pump_power))
         except ValueError as e:
             self.logger.error(str(e))
+
+    def poll(self):
+        try:
+            # Trigger faster processing after Flame state has changed
+            flame = self.read_0('Flame')
+            res = flame != self.flame
+            self.flame = flame
+        except ValueError as e:
+            pass
+
+        return res

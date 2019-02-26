@@ -11,8 +11,10 @@ from ebusd_types import (EbusdDeviceId)
 
 
 EBUS_RECONNECT_TO_SEC = 5
-EBUS_POLL_TO_SEC = 600
-
+EBUS_POLL_TO_SEC = 15
+EBUS_RUNNING_NORMAL_TO_SEC = 600
+EBUS_RUNNING_FAST_TO_SEC = EBUS_POLL_TO_SEC
+cur_running_to_sec = EBUS_RUNNING_NORMAL_TO_SEC
 
 # This holds the number of devices found during the last scan.
 # Some of the devices are detected late, so we need to re-scan
@@ -108,13 +110,21 @@ class Ebus(threading.Thread):
                                   ' Re-initializing now...' %
                                   (num_scanned_devices, len(scan_results)))
 
-
         for dev in self.devices:
             dev.process()
         return True
 
+    def state_running_do_poll(self):
+        fast_poll = False
+        for dev in self.devices:
+            if dev.poll():
+                fast_poll = True
+        return fast_poll
+
     def run(self):
+        global cur_running_to_sec
         seconds_till_run = 0
+        seconds_till_poll = 0
         first_connect = True
         first_run = True
         while not self.stopped():
@@ -137,7 +147,7 @@ class Ebus(threading.Thread):
                 elif self.state == EbusClientState.running:
                     if not first_run:
                         seconds_till_run += 1
-                        if seconds_till_run > EBUS_POLL_TO_SEC:
+                        if seconds_till_run > cur_running_to_sec:
                             seconds_till_run = 0
                             relax = self.state_running()
                         else:
@@ -146,6 +156,14 @@ class Ebus(threading.Thread):
                         first_run = False
                         seconds_till_run = 0
                         relax = self.state_running()
+
+                    seconds_till_poll += 1
+                    if seconds_till_poll > EBUS_POLL_TO_SEC:
+                        if self.state_running_do_poll():
+                            cur_running_to_sec = EBUS_RUNNING_FAST_TO_SEC
+                        else:
+                            cur_running_to_sec = EBUS_RUNNING_NORMAL_TO_SEC
+                        seconds_till_poll = 0
                 else:
                     self.logger.debug('Idle')
                     relax = True
