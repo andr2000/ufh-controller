@@ -17,28 +17,30 @@ msg_current = ''
 # 3. Refresh the page 1) and get the chat_id
 
 
+def _send_message_telegram(msg):
+    conn = http.client.HTTPSConnection(telegram_url, 443, timeout=5)
+    conn.request('GET', ' /' + 'bot' + bot_token +
+                 '/sendMessage?chat_id=' + chat_id + '&text=' +
+                 urllib.parse.quote_plus(msg))
+
+
+def send_message(msg):
+    if not bot_token or not chat_id:
+        return
+
+    msg_queue.appendleft(msg + '\n')
+
+
 def send_message_now(msg):
     if not bot_token or not chat_id:
         return
 
     try:
-        conn = http.client.HTTPSConnection(telegram_url, 443, timeout=5)
-        conn.request('GET', ' /' + 'bot' + bot_token +
-                     '/sendMessage?chat_id=' + chat_id + '&text=' +
-                     urllib.parse.quote_plus(msg))
+        _send_message_telegram(msg)
     except Exception:
         # If we fail then add to the queue - this might be a short(?)
         # temporary brownout
-        msg_queue.appendleft(msg + '\n')
-
-
-def send_message(msg):
-    global msg_queue
-
-    if not bot_token or not chat_id:
-        return
-
-    msg_queue.appendleft(msg + '\n')
+        send_message(msg)
 
 
 def process():
@@ -51,21 +53,21 @@ def process():
     if not len(msg_queue) and not len_msg_current:
         return
 
-    # FIXME: Telegram supports messages up to 4KiB, so drop the oldest first
-    while len(msg_queue) + len_msg_current > 4 * 1024:
-        msg_queue.pop()
-
     try:
-        conn = http.client.HTTPSConnection(telegram_url, 443, timeout=5)
-        # Take what we have for retry...
-        msg = msg_current
-        # ...and append any new messages
+        if len_msg_current:
+            _send_message_telegram(msg_current)
+            msg_current = ''
+
+        # FIXME: Telegram supports messages up to 4KiB
+        msg_len = 0
         while len(msg_queue):
-            msg += msg_queue.pop()
-        conn.request('GET', ' /' + 'bot' + bot_token +
-                     '/sendMessage?chat_id=' + chat_id + '&text=' +
-                     urllib.parse.quote_plus(msg))
+            msg_len += len(msg_queue[len(msg_queue) - 1])
+            if msg_len > 4 * 1024:
+                _send_message_telegram(msg_current)
+                msg_current = ''
+                msg_len = 0
+            msg_current += msg_queue.pop()
+        _send_message_telegram(msg_current)
         msg_current = ''
     except Exception:
-        # Save for retry
-        msg_current += msg
+        pass

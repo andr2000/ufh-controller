@@ -39,7 +39,7 @@ import weather
 # Once half an hour.
 WEATHER_POLL_TO_SEC = 30 * 60
 
-TELEGRAM_POLL_TO_SEC = 5
+TELEGRAM_POLL_TO_SEC = 15
 
 def main():
     ebus_devs = None
