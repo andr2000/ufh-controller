@@ -43,6 +43,8 @@ class EbusDeviceVRC700F(EbusDevice):
             self.float_or_die(temp_room_des)
 
             temp_room = self.read_0('z1RoomTemp')
+            if temp_room == 'inf':
+                temp_room = '-1'
             self.float_or_die(temp_room)
 
             temp_day = self.read_0('z1DayTemp')
