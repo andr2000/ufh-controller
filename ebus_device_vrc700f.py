@@ -36,25 +36,38 @@ class EbusDeviceVRC700F(EbusDevice):
         super().process()
 
         try:
-            temp_flow_desired = self.read_0('Hc1ActualFlowTempDesired')
-            self.float_or_die(temp_flow_desired)
+            param = 'Hc1ActualFlowTempDesired'
+            res = self.read_0(param)
+            self.float_or_die(res)
+            temp_flow_desired = res
 
-            temp_room_des = self.read_0('z1ActualRoomTempDesired')
-            self.float_or_die(temp_room_des)
+            param = 'z1ActualRoomTempDesired'
+            res = self.read_0(param)
+            self.float_or_die(res)
+            temp_room_des = res
 
-            temp_room = self.read_0('z1RoomTemp')
-            if temp_room == 'inf':
-                temp_room = '-1'
-            self.float_or_die(temp_room)
+            param = 'z1RoomTemp'
+            res = self.read_0(param)
+            if res == 'inf':
+                res = '-1'
+                telegram.send_message('VRC700: Room temp: inf')
+            self.float_or_die(res)
+            temp_room = res
 
-            temp_day = self.read_0('z1DayTemp')
-            self.float_or_die(temp_day)
+            param = 'z1DayTemp'
+            res = self.read_0(param)
+            self.float_or_die(res)
+            temp_day = res
 
-            temp_night = self.read_0('z1NightTemp')
-            self.float_or_die(temp_night)
+            param = 'z1NightTemp'
+            res = self.read_0(param)
+            self.float_or_die(res)
+            temp_night = res
 
-            temp_outside = self.read_0('DisplayedOutsideTemp')
-            self.float_or_die(temp_outside)
+            param = 'DisplayedOutsideTemp'
+            res = self.read_0(param)
+            self.float_or_die(res)
+            temp_outside = res
 
             self.tbl(datetime.datetime.now(), float(temp_flow_desired),
                      float(temp_room_des), float(temp_room),
@@ -79,7 +92,8 @@ class EbusDeviceVRC700F(EbusDevice):
                                    temp_room, temp_day, temp_night,
                                    temp_outside))
         except ValueError as e:
-            self.logger.error(str(e))
+            telegram.send_message('BAI: Error: %s = %s' % (param, res))
+            self.logger.error('%s: %s = %s' % (str(e), param, res))
 
     def poll(self):
         res = False

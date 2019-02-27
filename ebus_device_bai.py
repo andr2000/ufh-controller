@@ -48,33 +48,52 @@ class EbusDeviceBAI(EbusDevice):
         super().process()
 
         try:
-            temp_flow, temp_flow_status = self.read_0_status_at_idx(
-                'FlowTemp', 1)
-            self.float_or_die(temp_flow)
+            param = 'FlowTemp'
+            res, temp_flow_status = self.read_0_status_at_idx(param, 1)
+            self.float_or_die(res)
+            temp_flow = res
 
-            temp_flow_des = self.read_0('FlowTempDesired')
-            self.float_or_die(temp_flow_des)
+            param = 'FlowTempDesired'
+            res = self.read_0(param)
+            self.float_or_die(res)
+            temp_flow_des = res
 
-            temp_return, temp_return_status = self.read_0_status_at_idx(
-                'ReturnTemp', 2)
-            self.float_or_die(temp_return)
+            param = 'ReturnTemp'
+            res, temp_return_status = self.read_0_status_at_idx(param, 2)
+            self.float_or_die(res)
+            temp_return = res
 
-            flame = self.read_0('Flame')
+            param = 'Flame'
+            res = self.read_0(param)
+            flame = res
 
-            power = self.read_0('ModulationTempDesired')
-            self.float_or_die(power)
+            param = 'ModulationTempDesired'
+            res = self.read_0(param)
+            self.float_or_die(res)
+            power = res
             power_kw = self.power_max_hc_kw * float(power) / 100.0
 
-            water_pressure = self.read_0('WaterPressure')
-            self.float_or_die(water_pressure)
+            param = 'WaterPressure'
+            res = self.read_0(param)
+            self.float_or_die(res)
+            water_pressure = res
 
-            pump_power = self.read_0('PumpPower')
-            self.float_or_die(pump_power)
+            param = 'PumpPower'
+            res = self.read_0(param)
+            self.float_or_die(res)
+            pump_power = res
 
-            status01 = self.read_raw('Status01')
-            status02 = self.read_raw('Status02')
+            param = 'Status01'
+            res = self.read_raw(param)
+            status01 = res
 
-            set_mode_r = self.read_raw_experimental(self.SetModeR)
+            param = 'Status02'
+            res = self.read_raw(param)
+            status02 = res
+
+            param = 'SetModeR'
+            res = self.read_raw_experimental(self.SetModeR)
+            set_mode_r = res
 
             self.tbl(datetime.datetime.now(), float(temp_flow_des),
                      float(temp_flow), float(temp_return), flame, float(power),
@@ -100,7 +119,8 @@ class EbusDeviceBAI(EbusDevice):
             telegram.send_message('Flow %s Return %s Power, kW %.3f Flame %s PumpPower %s' %
                                   (temp_flow, temp_return, power_kw, flame, pump_power))
         except ValueError as e:
-            self.logger.error(str(e))
+            telegram.send_message('BAI: Error: %s = %s' % (param, res))
+            self.logger.error('%s: %s = %s' % (str(e), param, res))
 
     def poll(self):
         try:
