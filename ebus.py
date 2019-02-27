@@ -165,6 +165,8 @@ class Ebus(threading.Thread):
                                 'Number of eBus devices changed from %d to %d.'
                                 ' Re-initializing now...' %
                                 (num_scanned_devices, len(scan_results)))
+                            # Force process the devices
+                            seconds_till_run = cur_running_to_sec
 
                         seconds_till_poll = 0
                 else:
