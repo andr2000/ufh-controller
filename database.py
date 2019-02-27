@@ -48,7 +48,7 @@ def create(db_file, schema_file):
         raise
 
 
-def store_boiler(values):
+def store_burner(values):
     try:
         row = []
         row.append(int(time.time()))
@@ -65,7 +65,7 @@ def store_boiler(values):
         row.append(values['Status02'])
         row.append(values['SetModeR'])
         SQL = (
-            'INSERT INTO boiler (datetime_unix,'
+            'INSERT INTO burner (datetime_unix,'
             'temp_flow_target_100,temp_flow_100,temp_flow_sensor,'
             'temp_return_100,temp_return_sensor,'
             'flame_state,power_hc_percent_100,water_pressure_1000,'
@@ -76,7 +76,7 @@ def store_boiler(values):
             con.execute(SQL, row)
             con.commit()
     except sqlite3.IntegrityError:
-        logger.error('Could not insert into boiler')
+        logger.error('Could not insert into burner')
     except ValueError as e:
         logger.error(str(e))
 

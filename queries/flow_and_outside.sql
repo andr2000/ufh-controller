@@ -13,7 +13,7 @@ SELECT
 	DATETIME(datetime_unix, 'unixepoch', 'localtime') AS DateTime ,
 	NULL AS Toutside,
 	(temp_flow_100/100.) AS Flow
-FROM Boiler
+FROM Burner
 )
 
 ORDER BY DateTime;

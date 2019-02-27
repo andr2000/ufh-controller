@@ -1,4 +1,4 @@
-CREATE TABLE `boiler` (
+CREATE TABLE "burner" (
 	`datetime_unix`	INTEGER NOT NULL UNIQUE,
 	`temp_flow_target_100`	INTEGER,
 	`temp_flow_100`	INTEGER,

@@ -18,7 +18,7 @@ class EbusDeviceBAI(EbusDevice):
 
     def __init__(self, scan_result):
         self.logger = logging.getLogger(__name__)
-        self.logger.info('Initializing new boiler device')
+        self.logger.info('Initializing new burner device')
 
         super().__init__(scan_result)
 
@@ -114,7 +114,7 @@ class EbusDeviceBAI(EbusDevice):
                 'Status01': status01,
                 'Status02': status02,
                 'SetModeR': set_mode_r}
-            database.store_boiler(values)
+            database.store_burner(values)
 
             telegram.send_message('Flow %s Return %s Power, kW %.3f Flame %s PumpPower %s' %
                                   (temp_flow, temp_return, power_kw, flame, pump_power))

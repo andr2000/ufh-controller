@@ -11,5 +11,5 @@ SELECT
 	(water_pressure_1000/1000.) as WaterPressure,
 	(power_pump_100/100.) as PumpPower,
 	status01 as S01, status02 as S02, set_mode_r as SetMode
-FROM Boiler WHERE DateTime BETWEEN datetime('now', 'start of day') AND datetime('now', 'localtime');
-/* FROM Boiler WHERE DateTime BETWEEN datetime('now', '-1 days') AND datetime('now', 'localtime'); */
+FROM Burner WHERE DateTime BETWEEN datetime('now', 'start of day') AND datetime('now', 'localtime');
+/* FROM Burner WHERE DateTime BETWEEN datetime('now', '-1 days') AND datetime('now', 'localtime'); */
