@@ -72,6 +72,9 @@ class EbusDeviceBAI(EbusDevice):
             res = self.read_0(param)
             self.float_or_die(res)
             power = res
+            # Power is still reported non-zero even if Flame is off
+            if flame != 'on':
+                power = '0'
             power_kw = self.power_max_hc_kw * float(power) / 100.0
 
             param = 'WaterPressure'
