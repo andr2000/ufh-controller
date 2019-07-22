@@ -69,6 +69,16 @@ class EbusDeviceVRC700F(EbusDevice):
             self.float_or_die(res)
             temp_outside = res
 
+            param = 'HwcTempDesired'
+            res = self.read_0(param)
+            self.float_or_die(res)
+            hwc_temp_flow_des = res
+
+            param = 'HwcStorageTemp'
+            res = self.read_0(param)
+            self.float_or_die(res)
+            hwc_temp_storage = res
+
             self.tbl(datetime.datetime.now(), float(temp_flow_desired),
                      float(temp_room_des), float(temp_room),
                      float(temp_day), float(temp_night), float(temp_outside))
@@ -87,10 +97,11 @@ class EbusDeviceVRC700F(EbusDevice):
             database.store_vrc700f(values)
 
             telegram.send_message('FlowDes %s RoomDes %s Room %s '
-                                  'Day %s Night %s Out %s' %
+                                  'Day %s Night %s Out %s HwcDesired %s HwcStorage %s' %
                                   (temp_flow_desired, temp_room_des,
                                    temp_room, temp_day, temp_night,
-                                   temp_outside))
+                                   temp_outside, hwc_temp_flow_des,
+                                   hwc_temp_storage))
         except ValueError as e:
             telegram.send_message('BAI: Error: %s = %s' % (param, res))
             self.logger.error('%s: %s = %s' % (str(e), param, res))
