@@ -113,6 +113,13 @@ def __scan(result=True, full=False, address=''):
     return __read(cmd)
 
 
+def check_signal():
+    # Check if connected, e.g. scan results may not be empty,
+    # but there is no signal. This can happen if we were previously
+    # connected to BAI, but signal lost due to BAI is now powered off
+    return __read('state')
+
+
 def get_supported_messages(circuit=None):
     logger.info('Querying supported messages...')
     result = []

@@ -15,6 +15,8 @@ EBUS_POLL_TO_SEC = 15
 EBUS_RUNNING_NORMAL_TO_SEC = 600
 EBUS_RUNNING_FAST_TO_SEC = EBUS_POLL_TO_SEC
 cur_running_to_sec = EBUS_RUNNING_NORMAL_TO_SEC
+# This is used to limit print rate of "no signal" error
+EBUS_PRINT_NO_SIGNAL_TO_SEC = 5
 
 # This holds the number of devices found during the last scan.
 # Some of the devices are detected late, so we need to re-scan
@@ -27,14 +29,17 @@ class EbusClientState(Enum):
     scanning = 'scanning'
     running = 'running'
     terminating = 'terminating'
+    no_signal = 'no_signal'
 
 
 class Ebus(threading.Thread):
     def __init__(self):
         super(Ebus, self).__init__()
         self.state = EbusClientState.initializing
+        self.last_good_state = EbusClientState.no_signal
         self._stop_event = threading.Event()
         self.logger = logging.getLogger(__name__)
+        self.print_no_signal = 0
 
     def __del__(self):
         self.logger.info('Done')
@@ -42,6 +47,8 @@ class Ebus(threading.Thread):
     def stop(self):
         self.logger.info('Terminating now...')
         self.state = EbusClientState.terminating
+        # This is used to track the state when device signal was lost
+        self.last_good_state = EbusClientState.no_signal
         self._stop_event.set()
 
     def stopped(self):
@@ -52,9 +59,26 @@ class Ebus(threading.Thread):
         time.sleep(1)
 
     def set_state(self, state):
+        if self.state.value == state.value:
+            return
         self.logger.debug('Going from state <%s> to <%s>' %
                           (self.state.value, state.value))
+        if state.value == EbusClientState.no_signal.value:
+            self.last_good_state = self.state
         self.state = state
+
+    def check_signal(self):
+        try:
+            ebusd.check_signal()
+        except ValueError as e:
+            self.set_state(EbusClientState.no_signal)
+            if str(e) == ebusd.EbusdErr.RESULT_ERR_NO_SIGNAL.value:
+                self.print_no_signal += 1
+                if self.print_no_signal > EBUS_PRINT_NO_SIGNAL_TO_SEC:
+                    self.print_no_signal = 0
+                    self.logger.error(str(e))
+            raise e
+
 
     def state_initializing(self):
         self.devices = []
@@ -79,6 +103,8 @@ class Ebus(threading.Thread):
     def state_scanning(self):
         global num_scanned_devices
 
+        self.check_signal()
+
         scan_results = ebusd.scan_devices()
         if not scan_results:
             self.logger.warning('No devices found, continue scanning')
@@ -101,12 +127,20 @@ class Ebus(threading.Thread):
         return False
 
     def state_running(self):
+        self.check_signal()
         for dev in self.devices:
             dev.process()
         return True
 
+    def state_no_signal(self):
+        self.check_signal()
+        # No exception means we can get back into the previous state
+        self.set_state(self.last_good_state)
+        return True
+
     def state_running_do_poll(self):
         fast_poll = False
+        self.check_signal()
         for dev in self.devices:
             if dev.poll():
                 fast_poll = True
@@ -135,6 +169,11 @@ class Ebus(threading.Thread):
                         relax = self.state_connecting()
                 elif self.state == EbusClientState.scanning:
                     relax = self.state_scanning()
+                elif self.state == EbusClientState.no_signal:
+                    relax = self.state_no_signal()
+                    # Run now if we were in running state, do not wait for
+                    # timeout
+                    first_run = True
                 elif self.state == EbusClientState.running:
                     if not first_run:
                         seconds_till_run += 1
@@ -172,7 +211,8 @@ class Ebus(threading.Thread):
                 else:
                     self.logger.debug('Idle')
                     relax = True
-            except (ValueError):
+            except ValueError:
+                relax = True
                 pass
             except OSError as e:
                 self.logger.error("OS error: %s", str(e))
