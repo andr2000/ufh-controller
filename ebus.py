@@ -16,7 +16,8 @@ EBUS_RUNNING_NORMAL_TO_SEC = 600
 EBUS_RUNNING_FAST_TO_SEC = EBUS_POLL_TO_SEC
 cur_running_to_sec = EBUS_RUNNING_NORMAL_TO_SEC
 # This is used to limit print rate of "no signal" error
-EBUS_PRINT_NO_SIGNAL_TO_SEC = 5
+EBUS_LOGGER_NO_SIGNAL_TO_SEC = 5
+EBUS_TELEGRAM_NO_SIGNAL_TO_SEC = 600
 
 # This holds the number of devices found during the last scan.
 # Some of the devices are detected late, so we need to re-scan
@@ -40,6 +41,7 @@ class Ebus(threading.Thread):
         self._stop_event = threading.Event()
         self.logger = logging.getLogger(__name__)
         self.print_no_signal = 0
+        self.print_no_signal_telegram = 0
 
     def __del__(self):
         self.logger.info('Done')
@@ -74,9 +76,13 @@ class Ebus(threading.Thread):
             self.set_state(EbusClientState.no_signal)
             if str(e) == ebusd.EbusdErr.RESULT_ERR_NO_SIGNAL.value:
                 self.print_no_signal += 1
-                if self.print_no_signal > EBUS_PRINT_NO_SIGNAL_TO_SEC:
+                if self.print_no_signal > EBUS_LOGGER_NO_SIGNAL_TO_SEC:
                     self.print_no_signal = 0
                     self.logger.error(str(e))
+            self.print_no_signal_telegram += 1
+            if self.print_no_signal_telegram > EBUS_TELEGRAM_NO_SIGNAL_TO_SEC:
+                self.print_no_signal_telegram = 0
+                telegram.send_message(str(e))
             raise e
 
 
@@ -136,6 +142,8 @@ class Ebus(threading.Thread):
         self.check_signal()
         # No exception means we can get back into the previous state
         self.set_state(self.last_good_state)
+        self.print_no_signal = 0
+        self.print_no_signal_telegram = 0
         return True
 
     def state_running_do_poll(self):
