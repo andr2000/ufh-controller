@@ -19,7 +19,7 @@ msg_current = ''
 
 def _send_message_telegram(msg):
     conn = http.client.HTTPSConnection(telegram_url, 443, timeout=5)
-    conn.request('GET', ' /' + 'bot' + bot_token +
+    conn.request('GET', '/' + 'bot' + bot_token +
                  '/sendMessage?chat_id=' + chat_id + '&text=' +
                  urllib.parse.quote_plus(msg))
 
