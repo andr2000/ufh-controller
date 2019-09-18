@@ -195,3 +195,37 @@ def __read(command, retry=3):
         sock = None
         raise OSError('Disconnected from ebusd')
     return result
+
+
+def write_parameter(name, circuit=None, dest_addr=None):
+    result = None
+    args = ''
+    if circuit:
+        args += '-c ' + circuit + ' '
+    if dest_addr:
+        args += ' -d ' + dest_addr + ' '
+    args += name
+    result = __write('write ' + args)
+    return result
+
+
+def __write(command, retry=3):
+    global sock
+
+    try:
+        command += '\n'
+        for i in range(retry):
+            sock.sendall(command.encode())
+            result = __recvall().decode('utf-8').strip()
+            # FIXME: sometimes ebusd returns 'Element not found' error
+            # even for known messages, so try harder.
+            if result != EbusdErr.RESULT_ERR_NOTFOUND.value:
+                break
+        # Check if reply is an error message.
+        if EbusdErr.has_value(result):
+            raise ValueError(result)
+    except OSError:
+        # Disconnected - reconnect
+        sock = None
+        raise OSError('Disconnected from ebusd')
+    return result

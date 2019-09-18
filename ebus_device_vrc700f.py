@@ -32,10 +32,28 @@ class EbusDeviceVRC700F(EbusDevice):
 
         self.temp_room_des = self.read_0('z1ActualRoomTempDesired')
 
+    def check_datetime(self):
+        time = self.read_0('Time')
+        date = self.read_0('Date')
+        b7v_dt = datetime.datetime.strptime(date + ' ' + time,
+                                            '%d.%m.%Y %H:%M:%S').replace(microsecond=0)
+        dt = datetime.datetime.now().replace(microsecond=0)
+        diff_sec = abs((b7v_dt - dt).total_seconds())
+        if diff_sec > 600:
+            self.write_0('Date ' + dt.strftime('%d.%m.%Y'))
+            self.write_0('Time ' + dt.strftime('%H:%M:%S'))
+            msg = 'VRC700: adjusted system date/time: was ' + str(b7v_dt) + \
+                  ' set to ' + str(dt)
+            self.logger.error(msg)
+            telegram.send_message(msg)
+        telegram.send_message('VRC700: ' + str(b7v_dt))
+
     def process(self):
         super().process()
 
         try:
+            self.check_datetime()
+
             param = 'Hc1ActualFlowTempDesired'
             res = self.read_0(param)
             self.float_or_die(res)

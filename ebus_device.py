@@ -54,6 +54,13 @@ class EbusDevice():
         res = ebusd.read_exp_parameter(msg, '', self.scan_result.address)
         return res
 
+    def write_0(self, msg):
+        res = ebusd.write_parameter(msg,
+                                    self.scan_result.circuit,
+                                    self.scan_result.address).split(
+            ';')
+        return res[0]
+
     def process(self):
         pass
 
