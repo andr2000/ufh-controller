@@ -40,8 +40,8 @@ class Ebus(threading.Thread):
         self.last_good_state = EbusClientState.no_signal
         self._stop_event = threading.Event()
         self.logger = logging.getLogger(__name__)
-        self.print_no_signal = 0
-        self.print_no_signal_telegram = 0
+        self.print_no_signal = EBUS_LOGGER_NO_SIGNAL_TO_SEC
+        self.print_no_signal_telegram = EBUS_TELEGRAM_NO_SIGNAL_TO_SEC
 
     def __del__(self):
         self.logger.info('Done')
@@ -142,8 +142,8 @@ class Ebus(threading.Thread):
         self.check_signal()
         # No exception means we can get back into the previous state
         self.set_state(self.last_good_state)
-        self.print_no_signal = 0
-        self.print_no_signal_telegram = 0
+        self.print_no_signal = EBUS_LOGGER_NO_SIGNAL_TO_SEC
+        self.print_no_signal_telegram = EBUS_TELEGRAM_NO_SIGNAL_TO_SEC
         return True
 
     def state_running_do_poll(self):
