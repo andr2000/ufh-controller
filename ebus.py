@@ -79,10 +79,10 @@ class Ebus(threading.Thread):
                 if self.print_no_signal > EBUS_LOGGER_NO_SIGNAL_TO_SEC:
                     self.print_no_signal = 0
                     self.logger.error(str(e))
-            self.print_no_signal_telegram += 1
-            if self.print_no_signal_telegram > EBUS_TELEGRAM_NO_SIGNAL_TO_SEC:
-                self.print_no_signal_telegram = 0
-                telegram.send_message(str(e))
+                self.print_no_signal_telegram += 1
+                if self.print_no_signal_telegram > EBUS_TELEGRAM_NO_SIGNAL_TO_SEC:
+                    self.print_no_signal_telegram = 0
+                    telegram.send_message(str(e))
             raise e
 
 
