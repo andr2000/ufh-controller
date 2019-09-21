@@ -37,7 +37,6 @@ class Ebus(threading.Thread):
     def __init__(self):
         super(Ebus, self).__init__()
         self.state = EbusClientState.initializing
-        self.last_good_state = EbusClientState.no_signal
         self._stop_event = threading.Event()
         self.logger = logging.getLogger(__name__)
         self.print_no_signal = EBUS_LOGGER_NO_SIGNAL_TO_SEC
@@ -49,8 +48,6 @@ class Ebus(threading.Thread):
     def stop(self):
         self.logger.info('Terminating now...')
         self.state = EbusClientState.terminating
-        # This is used to track the state when device signal was lost
-        self.last_good_state = EbusClientState.no_signal
         self._stop_event.set()
 
     def stopped(self):
@@ -65,8 +62,6 @@ class Ebus(threading.Thread):
             return
         self.logger.debug('Going from state <%s> to <%s>' %
                           (self.state.value, state.value))
-        if state.value == EbusClientState.no_signal.value:
-            self.last_good_state = self.state
         self.state = state
 
     def check_signal(self):
@@ -140,8 +135,11 @@ class Ebus(threading.Thread):
 
     def state_no_signal(self):
         self.check_signal()
-        # No exception means we can get back into the previous state
-        self.set_state(self.last_good_state)
+        # No exception means we can get back to normal - reinitialize
+        msg = 'Acquired the signal, get back to work'
+        self.logger.info(msg)
+        telegram.send_message_now(msg)
+        self.set_state(EbusClientState.initializing)
         self.print_no_signal = EBUS_LOGGER_NO_SIGNAL_TO_SEC
         self.print_no_signal_telegram = EBUS_TELEGRAM_NO_SIGNAL_TO_SEC
         return True
@@ -156,13 +154,14 @@ class Ebus(threading.Thread):
 
     def run(self):
         global cur_running_to_sec
-        seconds_till_run = 0
-        seconds_till_poll = 0
-        first_connect = True
-        first_run = True
         while not self.stopped():
             try:
                 if self.state == EbusClientState.initializing:
+                    cur_running_to_sec = EBUS_RUNNING_NORMAL_TO_SEC
+                    seconds_till_run = 0
+                    seconds_till_poll = 0
+                    first_connect = True
+                    first_run = True
                     relax = self.state_initializing()
                 elif self.state == EbusClientState.connecting:
                     if not first_connect:
