@@ -52,6 +52,11 @@ class EbusDeviceVRC700F(EbusDevice):
         super().process()
 
         try:
+            # we can fail and try accessing res/param in the exception handler,
+            # so initialize now
+            res = 'NA'
+            param = 'check_datetime'
+
             self.check_datetime()
 
             param = 'Hc1ActualFlowTempDesired'

@@ -49,6 +49,10 @@ class EbusDeviceBAI(EbusDevice):
         super().process()
 
         try:
+            # we can fail and try accessing res in the exception handler,
+            # so initialize now
+            res = 'NA'
+
             param = 'FlowTemp'
             res, temp_flow_status = self.read_0_status_at_idx(param, 1)
             self.float_or_die(res)
