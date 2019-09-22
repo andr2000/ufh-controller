@@ -90,7 +90,8 @@ def scan_devices(silent=False):
         for line in reply.split('\n'):
             if 'done' in line:
                 return result
-            logger.debug('Device %s' % line)
+            if not silent:
+                logger.debug('Device %s' % line)
             try:
                 result.append(EbusdScanResult(line))
             except ValueError as e:
