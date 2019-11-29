@@ -1,0 +1,17 @@
+[Unit]
+Description=Under floor heating service
+After=ebusd.service
+Requires=ebusd.service
+
+[Service]
+Type=forking
+Restart=always
+RestartSec=10
+RuntimeDirectory=ufh-controller
+RuntimeDirectoryMode=755
+ExecStart=/usr/local/bin/ufh-controller --pid-file ${RUNTIME_DIRECTORY}/ufh-controller.pid $UFH_ARGS
+PIDFile=/run/ufh-controller/ufh-controller.pid
+EnvironmentFile=-/etc/default/ufh-controller
+
+[Install]
+WantedBy=multi-user.target
