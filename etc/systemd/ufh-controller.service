@@ -9,7 +9,7 @@ Restart=always
 RestartSec=10
 RuntimeDirectory=ufh-controller
 RuntimeDirectoryMode=755
-ExecStart=/usr/local/bin/ufh-controller --pid-file ${RUNTIME_DIRECTORY}/ufh-controller.pid $UFH_ARGS
+ExecStart=/usr/local/bin/ufh-controller/ufh-controller.py --pid-file ${RUNTIME_DIRECTORY}/ufh-controller.pid $UFH_ARGS
 PIDFile=/run/ufh-controller/ufh-controller.pid
 EnvironmentFile=-/etc/default/ufh-controller
 
