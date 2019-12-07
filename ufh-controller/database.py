@@ -1,3 +1,4 @@
+import errno
 import logging
 import os
 import sqlite3
@@ -35,7 +36,7 @@ def create(db_file, schema_file):
         logger.debug(os.path.dirname(db_file))
         os.makedirs(os.path.dirname(db_file))
     except OSError as e:
-        if e.errno != os.errno.EEXIST:
+        if e.errno != errno.EEXIST:
             raise
     try:
         fd = open(schema_file, 'r')
