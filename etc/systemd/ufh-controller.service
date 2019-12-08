@@ -1,7 +1,6 @@
 [Unit]
 Description=Under floor heating service
-After=ebusd.service
-Requires=ebusd.service
+After=network-online.target
 
 [Service]
 Type=forking
