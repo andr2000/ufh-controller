@@ -12,6 +12,10 @@ CREATE TABLE "burner" (
 	`status01`	TEXT,
 	`status02`	TEXT,
 	`set_mode_r`	TEXT,
+	`pr_energy_sum_hc1`	INTEGER,
+	`pr_energy_sum_hwc1`	INTEGER,
+	`pr_energy_count_hc1`	INTEGER,
+	`pr_energy_count_hwc1`	INTEGER,
 	PRIMARY KEY(datetime_unix)
 ) WITHOUT ROWID;
 CREATE TABLE `weather` (

@@ -65,13 +65,19 @@ def store_burner(values):
         row.append(values['Status01'])
         row.append(values['Status02'])
         row.append(values['SetModeR'])
+        row.append(values['PrEnergySumHc1'])
+        row.append(values['PrEnergySumHwc1'])
+        row.append(values['PrEnergyCountHc1'])
+        row.append(values['PrEnergyCountHwc1'])
         SQL = (
             'INSERT INTO burner (datetime_unix,'
             'temp_flow_target_100,temp_flow_100,temp_flow_sensor,'
             'temp_return_100,temp_return_sensor,'
             'flame_state,power_hc_percent_100,water_pressure_1000,'
-            'power_pump_100,status01,status02,set_mode_r) '
-            'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)'
+            'power_pump_100,status01,status02,set_mode_r,'
+            'pr_energy_sum_hc1,pr_energy_sum_hwc1,'
+            'pr_energy_count_hc1,pr_energy_count_hwc1) '
+            'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
         )
         with sqlite3.connect(db_file) as con:
             con.execute(SQL, row)

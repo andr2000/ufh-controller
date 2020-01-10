@@ -103,6 +103,22 @@ class EbusDeviceBAI(EbusDevice):
             res = self.read_raw_experimental(self.SetModeR)
             set_mode_r = res
 
+            param = 'PrEnergySumHc1'
+            res = self.read_0(param)
+            pr_energy_sum_hc1 = res
+
+            param = 'PrEnergySumHwc1'
+            res = self.read_0(param)
+            pr_energy_sum_hwc1 = res
+
+            param = 'PrEnergyCountHc1'
+            res = self.read_0(param)
+            pr_energy_count_hc1 = res
+
+            param = 'PrEnergyCountHwc1'
+            res = self.read_0(param)
+            pr_energy_count_hwc1 = res
+
             self.tbl(datetime.datetime.now(), float(temp_flow_des),
                      float(temp_flow), float(temp_return), flame, float(power),
                      power_kw, float(water_pressure), float(pump_power),
@@ -121,7 +137,11 @@ class EbusDeviceBAI(EbusDevice):
                 'PumpPower': pump_power,
                 'Status01': status01,
                 'Status02': status02,
-                'SetModeR': set_mode_r}
+                'SetModeR': set_mode_r,
+                'PrEnergySumHc1': pr_energy_sum_hc1,
+                'PrEnergySumHwc1': pr_energy_sum_hwc1,
+                'PrEnergyCountHc1': pr_energy_count_hc1,
+                'PrEnergyCountHwc1': pr_energy_count_hwc1}
             database.store_burner(values)
 
             telegram.send_message('Flow %s Return %s Power, kW %.3f Flame %s PumpPower %s' %
