@@ -44,6 +44,12 @@ class EbusDeviceBAI(EbusDevice):
         self.power_max_hc_kw = float(self.read_0('PartloadHcKW'))
         self.flame = self.read_0('Flame')
         self.pump_power = self.read_0('PumpPower')
+        # Energy from the day start
+        self.pr_energy_sum_hc1_day_start = int(self.read_0('PrEnergySumHc1'))
+        self.pr_energy_sum_hwc1_day_start = int(self.read_0('PrEnergySumHwc1'))
+        self.energy_day = 0.0
+        now = datetime.datetime.now()
+        self.energy_cur_day = now.day
 
     def process(self):
         super().process()
@@ -119,6 +125,11 @@ class EbusDeviceBAI(EbusDevice):
             res = self.read_0(param)
             pr_energy_count_hwc1 = res
 
+            # Calculate energy increase
+            d_hc = int(pr_energy_sum_hc1) - self.pr_energy_sum_hc1_day_start
+            d_hwc = int(pr_energy_sum_hwc1) - self.pr_energy_sum_hwc1_day_start
+            self.energy_day = d_hc / 747.351 + d_hwc / 672.730
+
             self.tbl(datetime.datetime.now(), float(temp_flow_des),
                      float(temp_flow), float(temp_return), flame, float(power),
                      power_kw, float(water_pressure), float(pump_power),
@@ -144,8 +155,17 @@ class EbusDeviceBAI(EbusDevice):
                 'PrEnergyCountHwc1': pr_energy_count_hwc1}
             database.store_burner(values)
 
-            telegram.send_message('Flow %s Return %s Power, kW %.3f Flame %s PumpPower %s' %
-                                  (temp_flow, temp_return, power_kw, flame, pump_power))
+            telegram.send_message('Flow %s Return %s Power, kW %.3f Flame %s PumpPower %s Energy %.1f' %
+                                  (temp_flow, temp_return, power_kw, flame, pump_power, self.energy_day))
+
+            # Check if this is another day and restart energy counting if so
+            now = datetime.datetime.now()
+            if now.day != self.energy_cur_day:
+                self.energy_cur_day = now.day
+                self.pr_energy_sum_hc1_day_start = int(pr_energy_sum_hc1)
+                self.pr_energy_sum_hwc1_day_start = int(pr_energy_sum_hwc1)
+                self.energy_day = 0.0
+
         except ValueError as e:
             telegram.send_message('BAI: Error: %s = %s' % (param, res))
             self.logger.error('%s: %s = %s' % (str(e), param, res))
