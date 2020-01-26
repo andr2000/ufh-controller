@@ -54,5 +54,5 @@ for i in range(last + 1):
     readings_mregr = beta_hat[0] * HC[i] + beta_hat[1] * HWC[i] + beta_hat[2]
     print('Reading: meter %.3f sum cal %.3f error %.3f; multi regression: %.3f '
           'error %.3f ' %
-          (METER[i], readings_sum, abs(METER[i] - readings_sum),
-           readings_mregr, abs(METER[i] - readings_mregr)))
+          (METER[i], readings_sum, (readings_sum - METER[i]),
+           readings_mregr, (readings_mregr - METER[i])))
