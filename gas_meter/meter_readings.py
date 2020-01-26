@@ -49,15 +49,7 @@ last_sum = last_hc1 + last_hwc1
 last_cal = last_sum / last_reading
 print('Meter: %s calibration %s\n' % (last_reading, last_cal))
 
-for i in range(last + 1):
-    cur_sum = HC[i] + HWC[i]
-    readings_sum = (last_reading + (cur_sum - last_sum) / last_cal)
-    readings_mregr = beta_hat[0] * HC[i] + beta_hat[1] * HWC[i] + beta_hat[2]
-    print('Reading: meter %.3f sum cal %.3f error %.3f; multi regression: %.3f '
-          'error %.3f ' %
-          (METER[i], readings_sum, (readings_sum - METER[i]),
-           readings_mregr, (readings_mregr - METER[i])))
-
+print("Note! jinja 2.3.10 doesn't support scientific notation, work around:")
 def exp10(x):
     try:
         exp = int(math.log10(x))
@@ -65,9 +57,8 @@ def exp10(x):
     except ValueError:
         return x, 0
 
-print('\nUse: meter = X[0] * HC + X[1] * HWC + X[2]\n')
+print('Use: meter = X[0] * HC + X[1] * HWC + X[2]')
 
-print("Note! jinja 2.3.10 doesn't support scientific notation, work around:")
 man_0, exp_0 = exp10(beta_hat[0])
 man_1, exp_1 = exp10(beta_hat[1])
 man_2, exp_2 = exp10(beta_hat[2])
@@ -76,3 +67,24 @@ print('{%% set X = [%s/10**%s, %s/10**%s, %s] %%}' %
       (man_0, abs(exp_0), man_1, abs(exp_1), man_2))
 
 print('X = [%s, %s, %s]' % (beta_hat[0], beta_hat[1], beta_hat[2]))
+
+DT = []
+METER = []
+HC = []
+HWC = []
+for line in log:
+    s = line.strip().split(',')
+    DT.append(s[FIELD_DATETIME])
+    METER.append(float(s[FIELD_METER]))
+    HC.append(int(s[FIELD_HC]))
+    HWC.append(int(s[FIELD_HWC]))
+
+print('\nTesting on the whole data set')
+for i in range(len(METER)):
+    cur_sum = HC[i] + HWC[i]
+    readings_sum = (last_reading + (cur_sum - last_sum) / last_cal)
+    readings_mregr = beta_hat[0] * HC[i] + beta_hat[1] * HWC[i] + beta_hat[2]
+    print('%s Reading: meter %.3f sum cal %.3f error %.3f; multi regression: %.3f '
+          'error %+.3f ' %
+          (DT[i], METER[i], readings_sum, (readings_sum - METER[i]),
+           readings_mregr, (readings_mregr - METER[i])))
