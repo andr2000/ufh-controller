@@ -39,7 +39,7 @@ class EbusDeviceVRC700F(EbusDevice):
                                             '%d.%m.%Y %H:%M:%S').replace(microsecond=0)
         dt = datetime.datetime.now().replace(microsecond=0)
         diff_sec = abs((b7v_dt - dt).total_seconds())
-        if diff_sec > 600:
+        if diff_sec > 60:
             self.write_0('Date ' + dt.strftime('%d.%m.%Y'))
             self.write_0('Time ' + dt.strftime('%H:%M:%S'))
             msg = 'VRC700: adjusted system date/time: was ' + str(b7v_dt) + \
