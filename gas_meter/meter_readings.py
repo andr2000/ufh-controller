@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import math
 import numpy as np
 from sklearn import linear_model
 
@@ -56,3 +57,22 @@ for i in range(last + 1):
           'error %.3f ' %
           (METER[i], readings_sum, (readings_sum - METER[i]),
            readings_mregr, (readings_mregr - METER[i])))
+
+def exp10(x):
+    try:
+        exp = int(math.log10(x))
+        return x / 10**exp, exp
+    except ValueError:
+        return x, 0
+
+print('\nUse: meter = X[0] * HC + X[1] * HWC + X[2]\n')
+
+print("Note! jinja 2.3.10 doesn't support scientific notation, work around:")
+man_0, exp_0 = exp10(beta_hat[0])
+man_1, exp_1 = exp10(beta_hat[1])
+man_2, exp_2 = exp10(beta_hat[2])
+
+print('{%% set X = [%s/10**%s, %s/10**%s, %s] %%}' %
+      (man_0, abs(exp_0), man_1, abs(exp_1), man_2))
+
+print('X = [%s, %s, %s]' % (beta_hat[0], beta_hat[1], beta_hat[2]))
